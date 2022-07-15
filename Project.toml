@@ -3,6 +3,13 @@ uuid = "50b852fb-755b-4f1c-b4e6-649ec8fe8474"
 authors = ["Jerome Guterl"]
 version = "0.1.0"
 
+[deps]
+PeriodicTable = "7b2266bf-644c-5ea3-82d8-af4bbd25a884"
+PhysicalConstants = "5ad8b20f-a522-5ce9-bfc9-ddf1d5bda6ab"
+RedefStructs = "91f8d46f-6a72-421b-a56e-b73459bd5e0a"
+StructEquality = "6ec83bb0-ed9f-11e9-3b4c-2b04cb4e219c"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
 [compat]
 julia = "1.7"
 
