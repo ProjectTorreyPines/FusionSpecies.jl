@@ -1,8 +1,11 @@
 module FusionSpecies
 using PeriodicTable
 using Unitful
-import PhysicalConstants.CODATA2018: m_e
-
+using Logging
+import Term.Trees: Tree
+using Crayons.Box
+#import PhysicalConstants.CODATA2018: m_e
+m_e = 9.1093837015e−31
 abstract type BaseSpecies end
 abstract type BaseActiveSpecies end
 abstract type BaseElement end
@@ -48,7 +51,19 @@ function get_species_symbol(e_name,z)
     return Symbol(e_name * get_str_charge_state(z)) 
 end
 
-
+function convert_macro_kwargs(args)
+    aargs = []
+    aakws = Pair{Symbol,Any}[]
+    for el in args
+        if Meta.isexpr(el, :(=))
+            push!(aakws, Pair(el.args...))
+        else
+            push!(aargs, el)
+        end
+    end
+    kwargs= Dict(aakws)
+    return aargs, kwargs
+end
 
 struct Element{T} <: BaseElement 
     name :: String
@@ -113,6 +128,10 @@ end
 
 function get_species_index(s::BaseActiveSpecies)
     return s.index
+end
+
+function get_species_index(s::Vector{<:BaseActiveSpecies})
+    return [ss.index for ss in s] 
 end
 
 struct ActiveSpeciesSet
@@ -200,16 +219,7 @@ macro create_elements(names...)
 end
 
 macro create_element(symb, args...)
-    aargs = []
-    aakws = Pair{Symbol,Any}[]
-    for el in args
-        if Meta.isexpr(el, :(=))
-            push!(aakws, Pair(el.args...))
-        else
-            push!(aargs, el)
-        end
-    end
-    kwargs= Dict(aakws)
+    aargs, kwargs = convert_macro_kwargs(args)
     if :type ∉ keys(kwargs)
         kwargs[:type] = Atom
     end
@@ -262,7 +272,7 @@ function get_next_species_index()
 end
 
 function check_status_active_species_registry(;lock=false)
-    @assert active_species_registry["locked"] == lock
+    @assert active_species_registry["locked"] == lock "active_species_registry : $active_species_registry"
 end
 
 import Base:(==)
@@ -272,36 +282,38 @@ function Base.:(==)(s1::BaseActiveSpecies,s2::BaseActiveSpecies)
        return all([getfield(s1,f) == getfield(s2,f) for f in fieldnames(typeof(s1)) if f != :index])
        end
 
-macro add_species(obj)
-    name = Symbol(obj)
-    obj = getfield(@__MODULE__,Symbol(obj))
+macro add_species(objs...)
     blk = Expr(:block)
-    expr = :(check_status_active_species_registry())
-    push!(blk.args,expr)
-    if obj isa Species
-        expr = quote
-            tmp = ActiveSpecies($obj,get_next_species_index())
-            @assert tmp ∉ collect(values(active_species_registry))
-            $name = tmp
-        end
-        # expr = :(println(typeof(ActiveSpecies($obj))))
-        # expr = :(println(typeof(ActiveSpecies($obj)) <: BaseActiveSpecies))
+    for obj in objs
+        name = Symbol(obj)
+        obj = getfield(@__MODULE__,Symbol(obj))
+        expr = :(check_status_active_species_registry())
         push!(blk.args,expr)
-        expr = :(add2registry($name))
-        push!(blk.args,expr)
-    elseif obj isa Element
-        for s in element_species_registry[obj]
-            name = Symbol(s.symbol)
+        if obj isa Species
             expr = quote
-                tmp = ActiveSpecies($s,get_next_species_index())
+                tmp = ActiveSpecies($obj,get_next_species_index())
                 @assert tmp ∉ collect(values(active_species_registry))
                 $name = tmp
             end
+            # expr = :(println(typeof(ActiveSpecies($obj))))
+            # expr = :(println(typeof(ActiveSpecies($obj)) <: BaseActiveSpecies))
             push!(blk.args,expr)
             expr = :(add2registry($name))
             push!(blk.args,expr)
-        end
+        elseif obj isa Element
+            for s in element_species_registry[obj]
+                name = Symbol(s.symbol)
+                expr = quote
+                    tmp = ActiveSpecies($s,get_next_species_index())
+                    @assert tmp ∉ collect(values(active_species_registry))
+                    $name = tmp
+                end
+                push!(blk.args,expr)
+                expr = :(add2registry($name))
+                push!(blk.args,expr)
+            end
 
+        end
     end
     esc(blk)
 end
@@ -312,7 +324,8 @@ end
 @create_element ∅ mass=0 name=dummy atomic_number=0
 @create_element D mass=2*H.mass name=deuterium atomic_number=1
 @create_element T mass=3*H.mass name=tritium atomic_number=1
-@create_element e mass=m_e.val name=electron atomic_number=-1 type=Electron
+#@create_element e mass=m_e.val name=electron atomic_number=-1 type=Electron
+@create_element e mass=m_e name=electron atomic_number=-1 type=Electron
 @create_species 
 
 function import_species()
@@ -329,6 +342,18 @@ function import_species()
 end
 import_species()
 
+macro setup_species()
+    expr = quote
+        setup_species()
+        # list_species = [v for (k,v) in active_species_registry if typeof(v) <: BaseActiveSpecies]
+        # @assert length(unique( list_species)) == length(list_species)
+        # list_idx = [v.index for (k,v) in active_species_registry if typeof(v) <: BaseActiveSpecies]
+        # @assert length(unique( list_idx)) == length(list_idx)
+        # active_species_registry["active_species_set"] = ActiveSpeciesSet(active_species_registry)
+        # active_species_registry["locked"] = true
+    end
+esc(expr)    
+end
 function setup_species()
     list_species = [v for (k,v) in active_species_registry if typeof(v) <: BaseActiveSpecies]
     @assert length(unique( list_species)) == length(list_species)
@@ -336,6 +361,7 @@ function setup_species()
     @assert length(unique( list_idx)) == length(list_idx)
     active_species_registry["active_species_set"] = ActiveSpeciesSet(active_species_registry)
     active_species_registry["locked"] = true
+    show(active_species_registry["active_species_set"])
 end
 
 macro reset_species()
@@ -357,10 +383,15 @@ end
 
 function check_active_species_index(active_species_registry::ActiveSpeciesRegistry)
     indexes = sort([v.index for v in values(active_species_registry) if typeof(v) <: BaseActiveSpecies])
+    @debug begin
+        "Indexes of active species: $indexes"
+    end
     # check that indexes start at 1
     @assert minimum(indexes) == 1
     # check that indexes are incremental by 1
-    @assert minimum(diff(indexes)) == maximum(diff(indexes)) == 1
+    if length(indexes) > 1
+        @assert minimum(diff(indexes)) == maximum(diff(indexes)) == 1
+    end
 end
 
 
@@ -369,10 +400,55 @@ function get_nspecies(active_species_set::ActiveSpeciesSet)
     return length(active_species_set.dic_species)
 end
 
+function get_active_species_set()
+    check_status_active_species_registry(lock=true)
+    return active_species_registry["active_species_set"]
+end
 function get_nspecies()
     @assert "active_species_set" ∈ keys(active_species_registry)
     check_status_active_species_registry(lock=true)
     return get_nspecies(active_species_registry["active_species_set"])
+end
+
+function get_active_species()
+    return get_active_species_set().list_species
+end
+
+
+
+
+function get_species(symbol::Symbol)
+    @assert "active_species_set" ∈ keys(active_species_registry)
+    check_status_active_species_registry(lock=true)
+    species =  filter(x->Symbol(x.symbol) == symbol  ,active_species_registry["active_species_set"].list_species)
+    @assert length(species) <2 
+    if length(species) == 1
+        return species[1]
+    elseif length(species) == 0
+        return nothing
+    end
+
+end
+
+function get_species(element::Element)
+    @assert "active_species_set" ∈ keys(active_species_registry)
+    check_status_active_species_registry(lock=true)
+    species =  filter(x->x.element == element  ,active_species_registry["active_species_set"].list_species)
+    return species
+end
+
+function get_species(species::ActiveSpecies)
+    return species
+end
+
+function get_species(is_species_active::Vector{Bool})
+    return [get_species(i) for (i,b) in enumerate(is_species_active) if b]
+end
+
+function get_species(species_index::Int64)
+    set = get_active_species_set()
+    @assert species_index ∈ keys(set.dic_species) 
+    return set.dic_species[species_index]
 end
 
 function get_electron_index()
@@ -392,5 +468,29 @@ export species_registry
 #export ActiveSpecies
 ##export BaseActiveSpecies
 export active_species_registry
-#export add2registry
+export get_species, @setup_species, get_active_species, get_active_species_set
+
+function Base.show(io::IO, ::MIME"text/plain", species::BaseActiveSpecies)
+    print(io, MAGENTA_FG("$(string(species.symbol))")," [",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
+end
+
+function Base.show(io::IO, species::BaseActiveSpecies)
+    print(io, MAGENTA_FG("$(string(species.symbol))")," [",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", species::ActiveSpeciesSet)
+    t = Tree(species.dic_species ,title="Active Species",
+    title_style="magenta",
+    guides_style="yellow")
+    print(io, t)
+end
+
+function Base.show(io::IO, species::ActiveSpeciesSet)
+    t = Tree(species.dic_species ,title="Active Species",
+    title_style="magenta",
+    guides_style="yellow")
+    print(io, t)
+end
+
+
 end
