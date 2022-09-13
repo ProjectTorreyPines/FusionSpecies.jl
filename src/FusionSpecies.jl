@@ -1,5 +1,4 @@
 module FusionSpecies
-using RedefStructs
 using PeriodicTable
 using Unitful
 import PhysicalConstants.CODATA2018: m_e
@@ -51,7 +50,7 @@ end
 
 
 
-@redef struct Element{T} <: BaseElement 
+struct Element{T} <: BaseElement 
     name :: String
     symbol :: String
     atomic_number :: Int64
@@ -73,7 +72,7 @@ function get_type_species(z::Int64)
     end
 end
 
-@redef struct Species{T} <:BaseSpecies
+struct Species{T} <:BaseSpecies
     charge_state :: Int64
     name :: String
     symbol :: String
@@ -116,7 +115,7 @@ function get_species_index(s::BaseActiveSpecies)
     return s.index
 end
 
-@redef struct ActiveSpeciesSet
+struct ActiveSpeciesSet
     list_species :: Vector{BaseActiveSpecies}
     dic_species :: Dict{Int64,BaseActiveSpecies}
     function ActiveSpeciesSet(active_species_registry)
