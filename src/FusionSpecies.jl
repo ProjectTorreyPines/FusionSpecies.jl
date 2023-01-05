@@ -12,7 +12,8 @@ export species_registry
 #export ActiveSpecies
 ##export BaseActiveSpecies
 export active_species_registry
-export get_species, @setup_species, get_active_species, get_active_species_set
+export get_species, @setup_species, get_active_species, get_active_species_set, get_electron_species
+
 #import PhysicalConstants.CODATA2018: m_e
 m_e = 9.1093837015e−31
 dic_expo = Dict{}()
@@ -67,8 +68,9 @@ macro create_element(symb, args...)
         kwargs[:type] = Atom
     end
     n = Symbol(string(symb))
+    s = string(symb)
     blk = Expr(:block)
-    expr = :($n = Element($(string(kwargs[:name])), $(string(n)),$(kwargs[:atomic_number]), $(kwargs[:mass]); type =  $(kwargs[:type])))
+    expr = :($n = Element($(string(kwargs[:name])), Symbol($s),$(kwargs[:atomic_number]), $(kwargs[:mass]); type =  $(kwargs[:type])))
     push!(blk.args,expr)
     expr = :(add2registry($n))
     push!(blk.args,expr)
@@ -162,12 +164,16 @@ macro setup_species()
     end
 
     for s in [v for v in values(active_species_registry) if v isa BaseActiveSpecies]
-        ss = Symbol(s.symbol)
-        
-
-    push!(expr.args,:($ss = get_active_species($ss)))
+        ss = s.symbol
+        sss = string(s.symbol)
+        push!(expr.args,:($ss = get_species(Symbol($sss))))
     end
 
+    for s in [v for v in values(active_species_registry) if v isa BaseActiveSpecies]
+        ss = get_element(s).symbol
+        sss = string(ss)
+        push!(expr.args,:($ss = get_element(Symbol($sss))))
+    end
 esc(expr)    
 end
 
@@ -178,7 +184,7 @@ function import_species()
             getfield(@__MODULE__,:species_registry)[length(species_registry)+1] = o
             add2registry(o.element,o;registry=getfield(@__MODULE__,:element_species_registry))
         elseif o isa BaseElement
-            getfield(@__MODULE__,:element_registry)[length(species_registry)+1] = o
+            getfield(@__MODULE__,:element_registry)[o.symbol] = o
 
         end
     end
@@ -227,12 +233,21 @@ end
 
 
 function Base.show(io::IO, ::MIME"text/plain", species::BaseActiveSpecies)
-    print(io, MAGENTA_FG("$(string(species.symbol))")," [",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
+     print(io, MAGENTA_FG("$(string(species.symbol))")," [",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
 end
 
 function Base.show(io::IO, species::BaseActiveSpecies)
-    print(io, MAGENTA_FG("$(string(species.symbol))")," [",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
+    print(io, MAGENTA_FG("$(string(species.symbol))"),"[$(species.index)]")
 end
+
+function Base.show(io::IO, ::MIME"text/plain", element::BaseElement)
+    print(io, BLUE_FG("$(string(element.symbol))"),BLUE_FG("Z = $(string(element.atomic_number))"))
+end
+
+function Base.show(io::IO, element::BaseElement)
+    print(io, BLUE_FG("$(string(element.symbol))"),BLUE_FG(" $(element.name) - Z = $(string(element.atomic_number))"))
+end
+
 
 function Base.show(io::IO, ::MIME"text/plain", species::ActiveSpeciesSet)
     t = Tree(species.dic_species ,title="Active Species",
@@ -248,5 +263,21 @@ function Base.show(io::IO, species::ActiveSpeciesSet)
     print(io, t)
 end
 
+function Base.show(io::IO,element_registry::ElementRegistry)
+    t = Tree(element_registry ,title="Available elements",
+    title_style="blue",
+    guides_style="blue")
+    print(io, t)
+end
 
+
+function show_elements()
+    show(element_registry)
+end
+
+function Base.:!(s::ActiveSpecies) 
+    return get_species_except(s)
+end
+
+export show_elements, get_element
 end

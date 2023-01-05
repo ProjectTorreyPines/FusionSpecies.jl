@@ -10,60 +10,67 @@ abstract type Ion <: Atom end
 
 struct Element{T} <: BaseElement 
     name :: String
-    symbol :: String
+    symbol :: Symbol
     atomic_number :: Int64
     mass :: Float64 
-    function Element(element::PeriodicTable.Element)
-        new{Atom}(element.name,element.symbol , element.number, (element.atomic_mass |> u"kg").val)
-    end
-    function Element(n, s ,a ,m; type= Atom)
-        new{type}(n,s,a,m)
-    end
+
 end
 
+    function Element(element::PeriodicTable.Element)
+        Element{Atom}(element.name,Symbol(element.symbol), element.number, (element.atomic_mass |> u"kg").val)
+    end
+    function Element(n, s ,a ,m; type= Atom)
+        Element{type}(n,s,a,m)
+    end
+    
 struct Species{T} <:BaseSpecies
-    charge_state :: Int64
+    charge_state :: Float64
     name :: String
-    symbol :: String
+    symbol :: Symbol
     element :: BaseElement
     mass :: Float64
     atomic_number:: Int64
-    function Species(e::BaseElement,z::Int64)
+    
+end
+
+function Species(e::BaseElement,z::Int64)
         T = get_type_species(z) 
-        s = string(get_species_symbol(e.symbol,z))
-        new{T}(z,e.name,s,e,e.mass,e.atomic_number)
-    end
+        s = get_species_symbol(e.symbol,z)
+        Species{T}(z,e.name,s,e,e.mass,e.atomic_number)
 end
 
 struct ActiveSpecies{T} <: BaseActiveSpecies
-    charge_state :: Int64
+    charge_state :: Float64
     name :: String
-    symbol :: String
+    symbol :: Symbol
     element :: BaseElement
     mass :: Float64
     atomic_number:: Int64
     index:: Int64
+end
 
-    function ActiveSpecies(s::Species, idx::Int64)
+function ActiveSpecies(s::Species, idx::Int64)
         T = get_type_species(s.charge_state) 
-        new{T}(s.charge_state,s.name,s.symbol,s.element,s.mass,s.atomic_number,idx)
-    end
-
+        ActiveSpecies{T}(s.charge_state,s.name,s.symbol,s.element,s.mass,s.atomic_number,idx)
 end
 
 struct ActiveSpeciesSet
     list_species :: Vector{BaseActiveSpecies}
     dic_species :: Dict{Int64,BaseActiveSpecies}
-    function ActiveSpeciesSet(active_species_registry)
-        # check id species
-        check_active_species_index(active_species_registry)
-        
-        # make dict with species indexes
-        dic_species = Dict{Int64,BaseActiveSpecies}()
-        for s in [v for v in values(active_species_registry) if typeof(v) <: BaseActiveSpecies]
-            dic_species[s.index] = s 
-        end
+end
 
-        new([v for v in values(active_species_registry) if typeof(v) <: BaseActiveSpecies],dic_species)
+function ActiveSpeciesSet(active_species_registry)
+    # check id species
+    check_active_species_index(active_species_registry)
+    
+    # make dict with species indexes
+    dic_species = Dict{Int64,BaseActiveSpecies}()
+    for s in [v for v in values(active_species_registry) if typeof(v) <: BaseActiveSpecies]
+        dic_species[s.index] = s 
     end
+    list_species = [v for v in values(dic_species) if typeof(v) <: BaseActiveSpecies]
+    for s in values(dic_species)
+        list_species[s.index] = s
+    end
+    ActiveSpeciesSet(list_species ,dic_species)
 end

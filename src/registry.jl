@@ -1,4 +1,4 @@
-const ElementRegistry = Dict{Int64,BaseElement}
+const ElementRegistry = Dict{Symbol,BaseElement}
 const SpeciesRegistry = Dict{Int64,BaseSpecies}
 const ActiveSpeciesRegistry = Dict{Union{Int64,String},Any}
 const element_species_registry = Dict{BaseElement,Vector{BaseSpecies}}()
@@ -9,7 +9,7 @@ const species_registry = SpeciesRegistry()
 
 function add2registry(e::Element)
     @assert e ∉ values(element_registry)
-    element_registry[length(element_registry)+1] = e
+    element_registry[Symbol(e.symbol)] = e
 end
 
 function add2registry(s::BaseSpecies)
