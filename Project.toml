@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 ADAS = "f4a0d185-1024-41e7-8ef7-3196bb2f6549"
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 PeriodicTable = "7b2266bf-644c-5ea3-82d8-af4bbd25a884"
 PhysicalConstants = "5ad8b20f-a522-5ce9-bfc9-ddf1d5bda6ab"
