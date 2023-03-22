@@ -39,9 +39,12 @@ end
 function get_species_symbol(e_name::Symbol,z)
     return Symbol(string(e_name) * get_str_charge_state(z)) 
 end
-function get_element(s::LoadedSpecies)
+function get_element(s::AbstractSpecies)
     return s.element
 end
+
+get_element(s::AbstractElement) = return s
+
 
 function get_element(e::Symbol)
     @assert e ∈ keys(element_registry) "Cannot find element $e in element_registry:$(keys(element_registry))"
@@ -152,6 +155,8 @@ get_species() ::Vector{<:AbstractLoadedSpecies} = get_species_set().list_species
 "$TYPEDSIGNATURES get a list of the mass of active species"
 get_species_mass() ::Vector{Float64} = [s.mass for s in get_species_set().list_species]
 
+"$TYPEDSIGNATURES get a list of the charge state of active species"
+get_species_Z(s::AbstractSpecies) = s.charge_state
 
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 get_species_Z() = [s.charge_state for s in get_species_set().list_species]

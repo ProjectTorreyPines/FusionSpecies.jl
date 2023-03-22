@@ -202,10 +202,10 @@ end
 
 
 @create_elements H He Be C Si W Ne Ar Xe 
-@create_element ∅ mass=0 name=dummy atomic_number=0
-@create_element D mass=2*H.mass name=deuterium atomic_number=1
-@create_element T mass=3*H.mass name=tritium atomic_number=1
-@create_element e mass=m_e name=electron atomic_number=-1 type=Electron
+@create_element ∅ mass=0 name=dummy atomic_number=0 density=0.0
+@create_element D mass=2*H.mass name=deuterium atomic_number=1 density= 0.0
+@create_element T mass=3*H.mass name=tritium atomic_number=1 density = 0.0
+@create_element e mass=m_e name=electron atomic_number=-1 type=Electron density = 0.0
 @create_species 
 
 macro setup_species()
