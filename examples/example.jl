@@ -8,13 +8,13 @@ show_elements()
 @add_species Be
 @add_species e⁻
 @setup_species
-show_active_species()
+show_species()
 FusionSpecies.get_species_iterators()
 
 
-FusionSpecies.get_active_species()
+FusionSpecies.get_species()
 
-FusionSpecies.get_active_species(1)
+FusionSpecies.get_species(1)
 
 @reset_species
 @add_species D¹⁺

@@ -1,5 +1,5 @@
 abstract type AbstractSpecies end
-abstract type AbstractActiveSpecies end
+abstract type AbstractLoadedSpecies end
 
 abstract type Dummy end
 abstract type Particles end
@@ -19,7 +19,7 @@ abstract type MainIon <: Ions end
 
 
 
-struct Species{T} <:AbstractSpecies
+struct BaseSpecies{T} <:AbstractSpecies
     charge_state :: Float64
     name :: String
     symbol :: Symbol
@@ -29,13 +29,13 @@ struct Species{T} <:AbstractSpecies
     
 end
 
-function Species(e::AbstractElement,z::Int64)
+function BaseSpecies(e::AbstractElement,z::Int64)
         T = get_type_species(z) 
         s = get_species_symbol(e.symbol,z)
-        Species{T}(z,e.name,s,e,e.mass,e.atomic_number)
+        BaseSpecies{T}(z,e.name,s,e,e.mass,e.atomic_number)
 end
 
-struct ActiveSpecies{T} <: AbstractActiveSpecies
+struct LoadedSpecies{T} <: AbstractLoadedSpecies
     charge_state :: Float64
     name :: String
     symbol :: Symbol
@@ -45,33 +45,33 @@ struct ActiveSpecies{T} <: AbstractActiveSpecies
     index:: Int64
 end
 
-function ActiveSpecies(s::Species, idx::Int64)
+function LoadedSpecies(s::BaseSpecies, idx::Int64)
         T = get_species_type(s) 
        
-        ActiveSpecies{T}(s.charge_state,s.name,s.symbol,s.element,s.mass,s.atomic_number,idx)
+        LoadedSpecies{T}(s.charge_state,s.name,s.symbol,s.element,s.mass,s.atomic_number,idx)
 end
 
-type(s::ActiveSpecies{T}) where T = T 
-stype(s::ActiveSpecies)  = split(string(type(s)),".")[end]
+type(s::LoadedSpecies{T}) where T = T 
+stype(s::LoadedSpecies)  = split(string(type(s)),".")[end]
 
-struct ActiveSpeciesSet
-    list_species :: Vector{AbstractActiveSpecies}
-    dic_species :: Dict{Int64,AbstractActiveSpecies}
+struct LoadedSpeciesSet
+    list_species :: Vector{AbstractLoadedSpecies}
+    dic_species :: Dict{Int64,AbstractLoadedSpecies}
 end
 
-function ActiveSpeciesSet(active_species_registry)
+function LoadedSpeciesSet(species_registry)
     # check id species
-    check_active_species_index(active_species_registry)
+    check_species_index(species_registry)
     
     # make dict with species indexes
-    dic_species = Dict{Int64,AbstractActiveSpecies}()
-    for s in [v for v in values(active_species_registry) if typeof(v) <: AbstractActiveSpecies]
+    dic_species = Dict{Int64,AbstractLoadedSpecies}()
+    for s in [v for v in values(species_registry) if typeof(v) <: AbstractLoadedSpecies]
         dic_species[s.index] = s 
     end
-    list_species = [v for v in values(dic_species) if typeof(v) <: AbstractActiveSpecies]
+    list_species = [v for v in values(dic_species) if typeof(v) <: AbstractLoadedSpecies]
     for s in values(dic_species)
         list_species[s.index] = s
     end
-    ActiveSpeciesSet(list_species ,dic_species)
+    LoadedSpeciesSet(list_species ,dic_species)
 end
 

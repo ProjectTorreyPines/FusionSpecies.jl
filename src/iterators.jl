@@ -1,6 +1,6 @@
-abstract type AbstractSpeciesIterators end
-struct SpeciesIterators{S,I,N,M,A,T,U} <: AbstractSpeciesIterators
-    s :: S
+abstract type AbstractLoadedSpeciesIterators end
+struct LoadedSpeciesIterators{S,I,N,M,A,T,U} <: AbstractLoadedSpeciesIterators
+    all :: S
     ions :: I
     neutrals :: N
     atoms :: A
@@ -21,8 +21,8 @@ function convert2iterator(v::Vector{Int64})
     end
 end
 is_continuous(v) = all(diff(v) .== 1)
-function SpeciesIterators()
-    all = convert2iterator(get_active_species_index())
+function LoadedSpeciesIterators()
+    all = convert2iterator(get_species_index())
     ions = convert2iterator(get_ions_index())
     neutrals = convert2iterator(get_neutrals_index())
     atoms = convert2iterator(get_atoms_index())
@@ -32,13 +32,13 @@ function SpeciesIterators()
     idx_e⁻ = get_electron_index()
     idx_main_ion = get_main_ion_index(;enforce = false)
     idx_main_atom = get_main_atom_index(;enforce = false)
-    SpeciesIterators(all, ions, neutrals, atoms, molecules, imp_ions, imp_atoms, idx_e⁻, idx_main_ion, idx_main_atom)
+    LoadedSpeciesIterators(all, ions, neutrals, atoms, molecules, imp_ions, imp_atoms, idx_e⁻, idx_main_ion, idx_main_atom)
 end
 
-get_species_iterators() = SpeciesIterators()
+get_species_iterators() = LoadedSpeciesIterators()
 
-function Base.show(io::IO, spc_iter::SpeciesIterators)
-    println("SpeciesIterators")
+function Base.show(io::IO, spc_iter::LoadedSpeciesIterators)
+    println("LoadedSpeciesIterators")
     for f in propertynames(spc_iter)
         println("└─ $f : $(getfield(spc_iter,f)) ")
     end
