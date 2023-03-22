@@ -106,12 +106,12 @@ function create_species()
     blk = Expr(:block)
     for (k,el) in element_registry
 
-        if get_element_type(el) == Atom
+        if get_element_type(el) == Atoms
             for z in 0:el.atomic_number
                 n = get_species_symbol(el.symbol,z)
                 es = el.symbol
                 #println("Adding $n ------")
-                expr = :(const $n = Species($el,$z))
+                expr = :(const $n = BaseSpecies($el,$z))
                 
                 push!(blk.args,expr)
                 # expr = :(add2registry($n))
@@ -201,7 +201,7 @@ end
 
 
 
-@create_elements H Be C Si W Ne Ar Xe 
+@create_elements H He Be C Si W Ne Ar Xe 
 @create_element ∅ mass=0 name=dummy atomic_number=0
 @create_element D mass=2*H.mass name=deuterium atomic_number=1
 @create_element T mass=3*H.mass name=tritium atomic_number=1
@@ -342,7 +342,7 @@ Base.to_index(s::LoadedSpecies) = Base.to_index(s.index)
 export show_elements, get_element, add_species, setup_species, show_species, create_species
 export @reset_species,  @add_species, @setup_species, @add_plasma_species
 export import_species
-export AbstractSpecies
+export AbstractSpecies, BaseSpecies
 export base_species_registry
 export species_registry
 export get_species, @setup_species, get_species, get_species_set, get_electron_species

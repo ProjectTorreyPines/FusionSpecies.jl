@@ -69,6 +69,13 @@ function get_nspecies(species_set::LoadedSpeciesSet)
     return length(species_set.dic_species)
 end
 
+function show_plasma_species()
+    list_elements =  [getfield(@__MODULE__,n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__,n) isa AbstractElement]
+    list_species =  [getfield(@__MODULE__,n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__,n) isa AbstractSpecies]
+    println(string.(list_elements))
+    println(string.(list_species))
+end
+
 function show_species()
     check_status_species_registry(lock=true)
     show(species_registry["species_set"])
