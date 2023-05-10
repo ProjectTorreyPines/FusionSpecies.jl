@@ -57,6 +57,9 @@ function check_status_species_registry(;lock=false, message ="" )
     @assert species_registry["locked"] == lock message * " | species_registry : $species_registry"
 end
 
+check_status(species_set::SpeciesSet;lock=false, message ="" ) = @assert species_set.lock[1] == lock message * " | species_registry : species_set_lock"
+
+
 macro reset_species()
     for k in keys(species_registry)
         delete!(species_registry,k)

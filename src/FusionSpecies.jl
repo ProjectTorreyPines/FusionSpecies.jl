@@ -146,6 +146,15 @@ function add_species(obj::BaseSpecies)
     return tmp
 end
 
+function add_species(obj::BaseSpecies, species_set::SpeciesSet)
+    check_status(species_set)
+    tmp = LoadedSpecies(obj,get_next_species_index(species_set))
+    @assert tmp ∉ species_set.list_species "Species $obj already added.... \n List of current species: $(species_set.list_species) \n Use @reset_species to clear the species registry"
+    push!(species_set.list_species,tmp)
+end
+
+add_species(obj::Symbol, species_set::SpeciesSet) = add_species(getfield(@__MODULE__,obj),species_set)
+
 function add_species(obj::Element)
     check_status_species_registry()
     for s in element_species_registry[obj]
@@ -155,43 +164,7 @@ function add_species(obj::Element)
     end
 end
 
-# macro add_species(objs...)
-#     blk = Expr(:block)
-#     for obj in objs
-#         name = Symbol(obj)
-#         obj = getfield(@__MODULE__,Symbol(obj))
-#         expr = :(check_status_species_registry())
-#         push!(blk.args,expr)
-
-#         if obj isa Species
-#             expr = quote
-#                 tmp = LoadedSpecies($obj,get_next_species_index())
-#                 @assert tmp ∉ collect(values(species_registry))
-#                 $name = tmp
-#             end
-#             push!(blk.args,expr)
-#             expr = :(add2registry($name))
-#             push!(blk.args,expr)
-
-#         elseif obj isa Element
-#             for s in element_species_registry[obj]
-#                 name = Symbol(s.symbol)
-#                 expr = quote
-#                     tmp = LoadedSpecies($s,get_next_species_index())
-#                     @assert tmp ∉ collect(values(species_registry))
-#                     $name = tmp
-#                 end
-#                 push!(blk.args,expr)
-#                 expr = :(add2registry($name))
-#                 push!(blk.args,expr)
-#             end
-
-#         end
-#     end
-#     esc(blk)
-# end
 macro add_species(objs...)
-    blk = Expr(:block)
     for obj in objs
         name = Symbol(obj)
         obj = getfield(@__MODULE__,Symbol(obj))
@@ -231,6 +204,8 @@ macro setup_species()
 esc(expr)    
 end
 
+
+
 function import_species()
     for L in names(@__MODULE__,all=true)
         o = getfield(@__MODULE__,L)
@@ -239,11 +214,12 @@ function import_species()
             add2registry(o.element,o;registry=getfield(@__MODULE__,:element_species_registry))
         elseif o isa AbstractElement
             getfield(@__MODULE__,:element_registry)[o.symbol] = o
-
         end
     end
 end
 import_species()
+
+
 
 function setup_species()
     reorder_species_index(species_registry)
@@ -258,15 +234,24 @@ function setup_species()
     show(species_registry["species_set"])
 end
 
+function setup_species(species_set::SpeciesSet)
+    reorder_species_index(species_set)
+    
+    list_species = species_set.list_species  
+    @assert length(unique( list_species)) == length(list_species)
+    
+    list_idx = [v.index for v in species_set.list_species]
+    @assert length(unique( list_idx)) == length(list_idx)
+    species_set.lock[1] = true
+end
+
 function reorder_species_index(species_registry)
-    list_species = [v for (k,v) in species_registry if typeof(v) <: AbstractLoadedSpecies]
-    nspc = length(list_species)
-
-
+    # list_species = [v for (k,v) in species_registry if typeof(v) <: AbstractLoadedSpecies]
+    # nspc = length(list_species)
 end
 
 
-function check_species_index(species_set::LoadedSpeciesSet)
+function check_species_index(species_set::SpeciesSet)
     for (k,v) in species_set.dic_species
         @assert k == v.index
     end
@@ -310,15 +295,15 @@ function Base.show(io::IO, element::AbstractElement)
 end
 
 
-function Base.show(io::IO, ::MIME"text/plain", species::LoadedSpeciesSet)
-    t = Tree(sort(species.dic_species) ,title="Active Species",
+function Base.show(io::IO, ::MIME"text/plain", species::SpeciesSet)
+    t = Tree(sort(species.dic_species) ,title="set of species",
     title_style="magenta",
     guides_style="yellow")
     print(io, t)
 end
 
-function Base.show(io::IO, species::LoadedSpeciesSet)
-    t = Tree(sort(species.dic_species) ,title="Active Species",
+function Base.show(io::IO, species::SpeciesSet)
+    t = Tree(sort(species.dic_species) ,title="set of species",
     title_style="magenta",
     guides_style="yellow")
     print(io, t)
@@ -339,11 +324,11 @@ Base.:!(s::LoadedSpecies) = get_species_except(s)
 
 Base.to_index(s::LoadedSpecies) = Base.to_index(s.index)
 
-export show_elements, get_element, add_species, setup_species, show_species, create_species
-export @reset_species,  @add_species, @setup_species, @add_plasma_species
+export show_elements, get_element, add_species, show_species, create_species
+export @reset_species, @add_plasma_species
 export import_species
 export AbstractSpecies, BaseSpecies
 export base_species_registry
 export species_registry
-export get_species, @setup_species, get_species, get_species_set, get_electron_species
+export get_species, get_species, get_species_set, get_electron_species, setup_species
 end
