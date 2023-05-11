@@ -276,7 +276,7 @@ function check_species_index(species_registry::LoadedSpeciesRegistry)
 end
 
 
-
+Base.ones(sp::FusionSpecies.SpeciesParameters) = ones(get_nspecies(sp.species_set))
 
 function Base.show(io::IO, ::MIME"text/plain", species::AbstractLoadedSpecies)
      print(io, MAGENTA_FG("$(string(species.symbol))")," [$(stype(species))][",LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
