@@ -143,8 +143,9 @@ get_electron_index(sp::SpeciesParameters) = sp.idx_e⁻
 
 get_electron(sp::SpeciesParameters;kw...) = get_electron(sp.species_set; kw...)
 
-get_ions_index(sp::SpeciesParameters) = sp.ions
+get_main_ion_index(sp::SpeciesParameters; kw...) = get_main_ion_index(sp.species_set; kw...)
 
+get_ions_index(sp::SpeciesParameters) = sp.ions
 get_species_index(sp::SpeciesParameters) = get_species_index(sp.species_set)
 Species = Union{Vector{<:FusionSpecies.AbstractSpecies},Vector{Symbol}, Symbol, FusionSpecies.AbstractSpecies, Int64, Vector{Int64}}
 get_species_index(sp::SpeciesParameters, s::Species) = get_species_index(sp.species_set,s)
