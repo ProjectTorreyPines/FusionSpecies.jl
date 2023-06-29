@@ -1,5 +1,5 @@
 module FusionSpecies
-using PeriodicTable
+import PeriodicTable
 using Logging
 using Crayons.Box
 using DocStringExtensions
@@ -18,13 +18,13 @@ dic_expo[9] = "⁹"
 dic_expo[0] = "⁰"
 dic_expo["+"] = "⁺"
 dic_expo["-"] = "⁻"
-include("elements.jl")
 include("types.jl")
+include("elements.jl")
 include("registry.jl")
 include("getter.jl")
 include("iterators.jl")
 
-
+dummy_loaded_species = LoadedSpecies{DummyParticles}(0.0, "dummy", :dummy, dummy_element, 0.0, 0, 0)
 function convert_macro_kwargs(args)
     aargs = []
     aakws = Pair{Symbol,Any}[]
@@ -44,7 +44,7 @@ macro create_elements(names...)
     blk = Expr(:block)
     for name in names_
         n = Symbol(name)
-        expr = :($n = Element(elements[Symbol($name)]))
+        expr = :($n = Element(PeriodicTable.elements[Symbol($name)]))
         push!(blk.args, expr)
         expr = :(add2registry($n))
         push!(blk.args, expr)
@@ -150,12 +150,10 @@ end
 
 add_species(obj::Symbol, species_set::SpeciesSet) = add_species(getfield(@__MODULE__, obj), species_set)
 
-function add_species(obj::Element)
-    check_status_species_registry()
+function add_species(obj::Element, species_set::SpeciesSet)
+    check_status(species_set)
     for s in element_species_registry[obj]
-        tmp = LoadedSpecies(s, get_next_species_index())
-        @assert tmp ∉ collect(values(species_registry))
-        add2registry(tmp)
+        add_species(s, species_set)
     end
 end
 
@@ -176,28 +174,28 @@ end
 @create_element e mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
 @create_species
 
-macro setup_species()
-    expr = quote
-        setup_species()
-    end
+# macro setup_species()
+#     expr = quote
+#         setup_species()
+#     end
 
-    for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
-        ss = s.symbol
-        sss = string(s.symbol)
-        push!(expr.args, :($ss = get_species(Symbol($sss))))
-    end
-    list_elements = []
-    for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
-        ss = get_element(s).symbol
-        sss = string(ss)
-        push!(list_elements, (ss, sss))
-    end
-    unique!(list_elements)
-    for (n, s) in list_elements
-        push!(expr.args, :($n = get_element(Symbol($s))))
-    end
-    esc(expr)
-end
+#     for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
+#         ss = s.symbol
+#         sss = string(s.symbol)
+#         push!(expr.args, :($ss = get_species(Symbol($sss))))
+#     end
+#     list_elements = []
+#     for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
+#         ss = get_element(s).symbol
+#         sss = string(ss)
+#         push!(list_elements, (ss, sss))
+#     end
+#     unique!(list_elements)
+#     for (n, s) in list_elements
+#         push!(expr.args, :($n = get_element(Symbol($s))))
+#     end
+#     esc(expr)
+# end
 
 
 
@@ -273,11 +271,11 @@ end
 
 Base.ones(sp::FusionSpecies.SpeciesParameters) = ones(get_nspecies(sp.species_set))
 
-function Base.show(io::IO, ::MIME"text/plain", species::AbstractLoadedSpecies)
+function Base.show(io::IO, ::MIME"text/plain", species::LoadedSpecies)
     print(io, MAGENTA_FG("$(string(species.symbol))"), " [$(stype(species))][", LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
 end
 
-function Base.show(io::IO, species::AbstractLoadedSpecies)
+function Base.show(io::IO, species::LoadedSpecies)
     print(io, MAGENTA_FG("$(string(species.symbol))"), " [$(stype(species))][$(species.index)]")
 end
 
@@ -290,18 +288,18 @@ function Base.show(io::IO, element::AbstractElement)
 end
 
 
-function Base.show(io::IO, ::MIME"text/plain", species::SpeciesSet)
-    t = Tree(sort(species.dic_species), title="set of species",
-        title_style="magenta",
-        guides_style="yellow")
-    print(io, t)
+function Base.show(io::IO, ::MIME"text/plain", species_set::SpeciesSet)
+    println("species set")
+    for s in species_set
+        println(s)
+    end
 end
 
-function Base.show(io::IO, species::SpeciesSet)
-    t = Tree(sort(species.dic_species), title="set of species",
-        title_style="magenta",
-        guides_style="yellow")
-    print(io, t)
+function Base.show(io::IO, species_set::SpeciesSet{T}) where {T}
+    println("species set")
+    for s in species_set
+        println(s)
+    end
 end
 
 function Base.show(io::IO, element_registry::ElementRegistry)
@@ -313,12 +311,44 @@ end
 
 "$TYPEDSIGNATURES display available elements"
 show_elements() = show(element_registry)
-
-
+name(species::Vector{<:AbstractElement}) = join([stringstyled(string(s.symbol); color=:orange, bold=true) for s in species], " ")
+name(species::Vector{<:AbstractSpecies}) = join([stringstyled(string(s.symbol); color=:magenta, bold=true) for s in species], " ")
+name(species::Vector{Symbol}) = join([stringstyled(s; color=:magenta, bold=true) for s in species], " ")
+name(species_set::SpeciesSet) = join(name.(species_set.list_species), " ")
+name(species::AbstractSpecies) = stringstyled(string(species.symbol); color=:magenta, bold=true)
+name(species::AbstractElement) = stringstyled(string(species.symbol); color=:orange, bold=true)
+inline_summary(species_set::SpeciesSet) = join([name(species) * "[$(species.index)]" for species in species_set.list_species], " ")
 Base.:!(s::LoadedSpecies) = get_species_except(s)
 
 Base.to_index(s::LoadedSpecies) = Base.to_index(s.index)
+import Base: text_colors, disable_text_style
+function stringstyled(str::AbstractString; color::Union{Int,Symbol}=:normal,
+    bold::Bool=false, underline::Bool=false, blink::Bool=false,
+    reverse::Bool=false, hidden::Bool=false)
+    bold && color === :bold && (color = :nothing)
+    underline && color === :underline && (color = :nothing)
+    blink && color === :blink && (color = :nothing)
+    reverse && color === :reverse && (color = :nothing)
+    hidden && color === :hidden && (color = :nothing)
+    enable_ansi = get(text_colors, color, text_colors[:default]) *
+                  (bold ? text_colors[:bold] : "") *
+                  (underline ? text_colors[:underline] : "") *
+                  (blink ? text_colors[:blink] : "") *
+                  (reverse ? text_colors[:reverse] : "") *
+                  (hidden ? text_colors[:hidden] : "")
 
+    disable_ansi = (hidden ? disable_text_style[:hidden] : "") *
+                   (reverse ? disable_text_style[:reverse] : "") *
+                   (blink ? disable_text_style[:blink] : "") *
+                   (underline ? disable_text_style[:underline] : "") *
+                   (bold ? disable_text_style[:bold] : "") *
+                   get(disable_text_style, color, text_colors[:default])
+
+    return enable_ansi * str * disable_ansi
+end
+
+
+const Elements = Union{Element,Vector{<:Element}}
 export show_elements, get_element, add_species, show_species, create_species
 export @reset_species, @add_plasma_species
 export import_species

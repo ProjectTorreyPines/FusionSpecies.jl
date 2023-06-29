@@ -1,21 +1,21 @@
 get_type_species(z::Int64) = get_type_species(float(z))
 
-function get_species_type(s::BaseSpecies)
+function get_species_type(s::BaseSpecies)::Type{<:Particles}
     if s.symbol == :D¹⁺
         T = MainIon
     elseif s.symbol == :D⁰
-            T = MainAtom
+        T = MainAtom
     elseif s.charge_state > 0
         return ImpurityIon
     elseif s.charge_state == 0
         return ImpurityAtom
-    elseif s.charge_state <1
+    elseif s.charge_state < 1
         return Electron
     end
 end
 
 function get_type_species(z::Float64)
-    if z>0
+    if z > 0
         return Ions
     elseif z == 0
         return Atoms
@@ -29,15 +29,15 @@ function get_str_charge_state(z::Int64)
         return dic_expo[0]
     elseif z == -1
         return dic_expo["-"]
-    # elseif z==1
-    #     return dic_expo["+"]
-    elseif z>0
-        return join(vcat([dic_expo[d] for d in reverse(digits(z))],[dic_expo["+"]]),"")
+        # elseif z==1
+        #     return dic_expo["+"]
+    elseif z > 0
+        return join(vcat([dic_expo[d] for d in reverse(digits(z))], [dic_expo["+"]]), "")
     end
 end
 
-function get_species_symbol(e_name::Symbol,z)
-    return Symbol(string(e_name) * get_str_charge_state(z)) 
+function get_species_symbol(e_name::Symbol, z)
+    return Symbol(string(e_name) * get_str_charge_state(z))
 end
 
 get_element(s::Union{AbstractSpecies,AbstractLoadedSpecies}) = return s.element
@@ -59,21 +59,21 @@ function get_list_elements()
 end
 
 function get_next_species_index()
-    if length([k for (k,v) in species_registry if typeof(v) <: AbstractLoadedSpecies])>0
-        return maximum([k for (k,v) in species_registry if typeof(v) <: AbstractLoadedSpecies])+1
+    if length([k for (k, v) in species_registry if typeof(v) <: AbstractLoadedSpecies]) > 0
+        return maximum([k for (k, v) in species_registry if typeof(v) <: AbstractLoadedSpecies]) + 1
     else
         return 1
     end
 end
 
-get_next_species_index(species_set::SpeciesSet) = length(species_set.list_species) +1
+get_next_species_index(species_set::SpeciesSet) = length(species_set.list_species) + 1
 
 get_nspecies(species_set::SpeciesSet) = length(species_set.list_species)
 
 
 function show_plasma_species()
-    list_elements =  [getfield(@__MODULE__,n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__,n) isa AbstractElement]
-    list_species =  [getfield(@__MODULE__,n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__,n) isa AbstractSpecies]
+    list_elements = [getfield(@__MODULE__, n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__, n) isa AbstractElement]
+    list_species = [getfield(@__MODULE__, n).symbol for n in names(@__MODULE__, all=true) if getfield(@__MODULE__, n) isa AbstractSpecies]
     println(string.(list_elements))
     println(string.(list_species))
 end
@@ -84,13 +84,13 @@ function show_species()
 end
 
 function get_species_set(; enforce=true)
-    if enforce 
-    check_status_species_registry(lock=true)
-    return species_registry["species_set"]
+    if enforce
+        check_status_species_registry(lock=true)
+        return species_registry["species_set"]
     elseif "species_set" ∈ keys(species_registry)
-            return species_registry["species_set"]
+        return species_registry["species_set"]
     else
-        return nothing    
+        return nothing
     end
 end
 
@@ -102,9 +102,9 @@ end
 
 " $TYPEDSIGNATURES return the electron species in active species"
 function get_electron(species_set::SpeciesSet; enforce=true)
-    ss = [s for s in get_species(species_set) if type(s) <:Electron]
+    ss = [s for s in get_species(species_set) if type(s) <: Electron]
     if enforce
-        @assert length(ss) < 2  "none or more than one electron species found."
+        @assert length(ss) < 2 "none or more than one electron species found."
     end
 
     if length(ss) == 1
@@ -134,7 +134,7 @@ end
 
 " $TYPEDSIGNATURES return the main ion species in active species"
 function get_main_atom(species_set::SpeciesSet; enforce=true)
-    ss = [s for s in get_species(species_set) if type(s) <:MainAtom]
+    ss = [s for s in get_species(species_set) if type(s) <: MainAtom]
     if enforce
         @assert length(ss) == 1 "none or more than one main atom species found among: \n $ss"
     end
@@ -149,68 +149,76 @@ function get_main_atom(species_set::SpeciesSet; enforce=true)
 end
 
 
+(Vector{<:LoadedSpecies})(::Vector{Any}) = (Vector{LoadedSpecies})()
+
+get_species(species_set::SpeciesSet{T}, type_species::Type{<:Particles}) where {T} = Vector{T}([s for s in species_set.list_species if type(s) <: type_species])
 "$TYPEDSIGNATURES get a list of active species"
-get_species(species_set::SpeciesSet) ::Vector{<:LoadedSpecies} = species_set.list_species
+get_species(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector{T}
 
 "$TYPEDSIGNATURES get a list of active species"
-get_all(species_set::SpeciesSet) ::Vector{<:LoadedSpecies} = species_set.list_species
+get_all(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector{T}
 
 "$TYPEDSIGNATURES get a list of the mass of active species"
-get_species_mass(species_set::SpeciesSet) ::Vector{Float64} = [s.mass for s in species_set.list_species]
+get_species_mass(species_set::SpeciesSet) = [s.mass for s in species_set.list_species]::Vector{Float64}
 
 "$TYPEDSIGNATURES get a list of the charge state of active species"
-get_species_Z(s::AbstractSpecies) :: Vector{Float64} = s.charge_state
+get_species_Z(s::AbstractSpecies)::Vector{Float64} = s.charge_state
 
 "$TYPEDSIGNATURES get a list of the charge state of active species"
-get_species_Z(species_set::SpeciesSet) :: Vector{Float64} = [s.charge_state for s in species_set.list_species]
+get_species_Z(species_set::SpeciesSet)::Vector{Float64} = [s.charge_state for s in species_set.list_species]
 
 "$TYPEDSIGNATURES get a list of ions among active species"
-get_ions(species_set::SpeciesSet) ::Vector{<:LoadedSpecies}  = [s for s in species_set.list_species if type(s) <: Ions]
+get_ions(species_set::SpeciesSet) = get_species(species_set, Ions)
 
 "$TYPEDSIGNATURES get a list of ions among active species"
-get_imp_ions(species_set::SpeciesSet) ::Vector{<:LoadedSpecies}  = [s for s in species_set.list_species if type(s) <: ImpurityIon]
+get_imp_ions(species_set::SpeciesSet) = get_species(species_set, ImpurityIon)
 
 "$TYPEDSIGNATURES get a list of ions among active species"
-get_imp_atoms(species_set::SpeciesSet) ::Vector{<:LoadedSpecies}  = [s for s in species_set.list_species if type(s) <: ImpurityAtom]
+get_imp_atoms(species_set::SpeciesSet) = get_species(species_set, ImpurityAtom)
 
 "$TYPEDSIGNATURES get a list of atoms among active species"
-get_atoms(species_set::SpeciesSet) ::Vector{<:LoadedSpecies}= [s for s in species_set.list_species if type(s) <: Atoms]
+get_atoms(species_set::SpeciesSet) = get_species(species_set, Atoms)
+
+"$TYPEDSIGNATURES get a list of atoms among active species"
+get_ions_atoms(species_set::SpeciesSet) = get_species(species_set, IonsAtoms)
 
 "$TYPEDSIGNATURES get a list of molecules among active species"
-get_molecules(species_set::SpeciesSet) ::Vector{<:LoadedSpecies} = [s for s in species_set.list_species if type(s) <: Molecules]
+get_molecules(species_set::SpeciesSet) = get_species(species_set, Molecules)
 
-(Vector{<:LoadedSpecies})(::Vector{Any}) = (Vector{LoadedSpecies})()
 "$TYPEDSIGNATURES get a list of atoms among active species"
-get_neutrals(species_set::SpeciesSet) ::Vector{<:LoadedSpecies} = [s for s in species_set.list_species if type(s) <: Neutrals]
+get_neutrals(species_set::SpeciesSet) = get_species(species_set, Neutrals)
 
 "$TYPEDSIGNATURES get a list of index of neutrals among active species"
-get_neutrals_index(species_set::SpeciesSet) :: Vector{Int64} = get_species_index(get_neutrals(species_set))
+get_neutrals_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_neutrals(species_set))
 
 "$TYPEDSIGNATURES get a list of index of ions among active species"
-get_ions_index(species_set::SpeciesSet) :: Vector{Int64} = get_species_index(get_ions(species_set))
+get_ions_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_ions(species_set))
 
 "$TYPEDSIGNATURES get a list of index of ions among active species"
-get_main_ion_index(species_set::SpeciesSet;kw...) :: Int64 = get_species_index(get_main_ion(species_set;kw...))
+get_main_ion_index(species_set::SpeciesSet; kw...)::Int64 = get_species_index(get_main_ion(species_set; kw...))
 
 "$TYPEDSIGNATURES get the index of main atom among active species"
-get_main_atom_index(species_set::SpeciesSet;kw...) :: Int64 = get_species_index(get_main_atom(species_set;kw...))
+get_main_atom_index(species_set::SpeciesSet; kw...)::Int64 = get_species_index(get_main_atom(species_set; kw...))
 
 "$TYPEDSIGNATURES get a list of index of impurity ions among active species"
-get_imp_ions_index(species_set::SpeciesSet) :: Vector{Int64} = get_species_index(get_imp_ions(species_set))
+get_imp_ions_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_imp_ions(species_set))
 
 "$TYPEDSIGNATURES get a list of molecules among active species"
-get_molecules_index(species_set::SpeciesSet) ::Vector{Int64} = get_species_index(get_molecules(species_set))
+get_molecules_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_molecules(species_set))
 
 "$TYPEDSIGNATURES get a list of index of impurity atoms among active species"
-get_imp_atoms_index(species_set::SpeciesSet) :: Vector{Int64} = get_species_index(get_imp_atoms(species_set))
+get_imp_atoms_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_imp_atoms(species_set))
 
 "$TYPEDSIGNATURES get a list of index of atoms among active species"
-get_atoms_index(species_set::SpeciesSet) :: Vector{Int64} = get_species_index(get_atoms(species_set))
+get_atoms_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_atoms(species_set))
+
+"$TYPEDSIGNATURES get a list of index of atoms among active species"
+get_ions_atoms_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(get_ions_atoms(species_set))
 
 
 " $TYPEDSIGNATURES return the index of the electron species"
-function get_electron_index(species_set::SpeciesSet;enforce=false) :: Int64
-    e = get_electron(species_set;enforce=enforce)
+function get_electron_index(species_set::SpeciesSet; enforce=false)::Int64
+    e = get_electron(species_set; enforce=enforce)
     if e isa LoadedSpecies{<:Electron}
         return e.index
     elseif e isa Nothing
@@ -219,44 +227,44 @@ function get_electron_index(species_set::SpeciesSet;enforce=false) :: Int64
 end
 
 
-get_ions_Z(species_set::SpeciesSet) :: Vector{Float64} = [s.charge_state for s in get_ions(species_set)]
+get_ions_Z(species_set::SpeciesSet)::Vector{Float64} = [s.charge_state for s in get_ions(species_set)]
 
 
 """$TYPEDSIGNATURES get a list of the index of active species
    $(METHODLIST)
 """
-get_species_index(s::Nothing) ::Int64 = 0
-get_species_index(s::Int64) ::Int64= s
-get_species_index(s::AbstractLoadedSpecies) ::Int64= s.index
-get_species_index(species::Vector{Bool}) ::Vector{Int64} = Vector{Int64}([i for (i,as) in enumerate(species) if as])
-get_species_index(species::Vector{Int64}) ::Vector{Int64} = species
-get_species_index(species::Vector{<:AbstractSpecies}) ::Vector{Int64} = Vector{Int64}([s.index for s in species])
+get_species_index(s::Nothing)::Int64 = 0
+get_species_index(s::Int64)::Int64 = s
+get_species_index(s::AbstractLoadedSpecies)::Int64 = s.index
+get_species_index(species::Vector{Bool})::Vector{Int64} = Vector{Int64}([i for (i, as) in enumerate(species) if as])
+get_species_index(species::Vector{Int64})::Vector{Int64} = species
+get_species_index(species::Vector{<:AbstractSpecies})::Vector{Int64} = Vector{Int64}([s.index for s in species])
 # get_species_index() ::Vector{Int64} = get_species_index(get_species())
-get_species_index(species_set::SpeciesSet) ::Vector{Int64} = get_species_index(species_set.list_species)
-function get_species_index(species_set::SpeciesSet,s::Symbol)
-    if s ==:all
+get_species_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(species_set.list_species)
+function get_species_index(species_set::SpeciesSet, s::Symbol)
+    if s == :all
         get_species_index(species_set)
     elseif s == :electron
         get_electron_index(species_set)
-    elseif s ==:ions
+    elseif s == :ions
         get_ions_index(species_set)
     elseif s isa Symbol
-        [ss.index for ss in filter(x->Symbol(x.symbol) == s ,species_set.list_species)]
+        [ss.index for ss in filter(x -> Symbol(x.symbol) == s, species_set.list_species)]
     else
 
     end
 end
-get_species_index(species_set::SpeciesSet,s::AbstractSpecies) = get_species_index(species_set,[s])
-get_species_index(species_set::SpeciesSet,s::Vector{<:AbstractSpecies}) = sort([ss.index for sss in s for ss in filter(x->x == sss ,species_set.list_species)])
-get_species_index(species_set::SpeciesSet,s::Vector{Int64}) = sort([ss.index for sss in s for ss in filter(x->x.index == sss ,species_set.list_species)])
+get_species_index(species_set::SpeciesSet, s::AbstractSpecies) = get_species_index(species_set, [s])
+get_species_index(species_set::SpeciesSet, s::Vector{<:AbstractSpecies}) = sort([ss.index for sss in s for ss in filter(x -> x == sss, species_set.list_species)])
+get_species_index(species_set::SpeciesSet, s::Vector{Int64}) = sort([ss.index for sss in s for ss in filter(x -> x.index == sss, species_set.list_species)])
 " $(TYPEDSIGNATURES) return the species that are of type `element`"
-function get_species(species_set::SpeciesSet,s::Symbol; lock=true)
-    check_status(species_set,lock=lock)
-    if s in keys(species_category) 
+function get_species(species_set::SpeciesSet, s::Symbol; lock=true)
+    check_status(species_set, lock=lock)
+    if s in keys(species_category)
         return species_category[s](species_set)
     else
-        @assert s ∈ [ss.symbol for ss in species_set.list_species] "species $s not in $(Symbol.(species_set))"
-        species =  filter(x->Symbol(x.symbol) == s ,species_set.list_species)[1]
+        @assert s ∈ [ss.symbol for ss in species_set.list_species] "species $s not loaded. Available species $(name(species_set))"
+        species = filter(x -> Symbol(x.symbol) == s, species_set.list_species)[1]
         return species
     end
 end
@@ -265,7 +273,7 @@ end
 
 Base.length(s::SpeciesSet) = length(s.list_species)
 
-Base.iterate(s::SpeciesSet,args...) = iterate(s.list_species, args...)
+Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
 # " $(TYPEDSIGNATURES) return the species that are of type `element`"
 # function get_species(symbol::Symbol; lock=true)
 #     @assert "species_set" ∈ keys(species_registry)
@@ -296,34 +304,34 @@ Base.iterate(s::SpeciesSet,args...) = iterate(s.list_species, args...)
 #     end
 #     return out 
 # end
-    
 
-get_species(species_set::SpeciesSet,element::Element) = filter(x->x.element == element  ,species_set.list_species)
-get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x->x != species, species_set.list_species)
-get_species(species_set::SpeciesSet, element::Element, Z::Int64) = get_species(species_set, get_species_symbol(element.symbol,Z))
 
-function get_species(species_set::SpeciesSet, s::Vector{T}) where T<:Union{AbstractLoadedSpecies,Symbol}
+get_species(species_set::SpeciesSet, element::Element) = filter(x -> x.element == element, species_set.list_species)
+get_species(species_set::SpeciesSet, elements::Vector{<:Element}) = filter(x -> x.element ∈ elements, species_set.list_species)
+get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x -> x != species, species_set.list_species)
+get_species(species_set::SpeciesSet, element::Element, Z::Int64) = get_species(species_set, get_species_symbol(element.symbol, Z))
+get_species(species_set::SpeciesSet, species::LoadedSpecies) = species
+function get_species(species_set::SpeciesSet, s::Vector{T}) where {T<:Union{AbstractLoadedSpecies,Symbol}}
     out = Vector{LoadedSpecies}()
-    for ss in s 
-        push!(out,get_species(species_set::SpeciesSet,ss))
+    for ss in s
+        push!(out, get_species(species_set, ss))
     end
     return out
 end
 # get_species(s::LoadedSpecies) = [s]
-name(s::LoadedSpecies) = string(s.symbol)
 get_species_name(s) = name.(get_species(s))
 
 get_electron_species(species_set::SpeciesSet) = get_electron(species_set)
 
-get_species_parameters(;kw...) = SpeciesParameters(;kw...)
+get_species_parameters(; kw...) = SpeciesParameters(; kw...)
 
 
 const species_category = Dict(:all => get_all,
-                             :ions => get_ions,
-                             :imp_ions => get_imp_ions,
-                             :imp_atoms => get_imp_atoms,
-                             :atoms => get_atoms,
-                             :molecules => get_molecules,
-                             :neutrals =>get_neutrals,
-                             :electron => get_electron
-                             )
+    :ions => get_ions,
+    :imp_ions => get_imp_ions,
+    :imp_atoms => get_imp_atoms,
+    :atoms => get_atoms,
+    :molecules => get_molecules,
+    :neutrals => get_neutrals,
+    :electron => get_electron
+)
