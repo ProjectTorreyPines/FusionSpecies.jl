@@ -46,12 +46,13 @@ struct LoadedSpecies{T<:Particles} <: AbstractLoadedSpecies{T}
     mass::Float64
     atomic_number::Int64
     index::Int64
+    is_active::Vector{Bool}
 end
 
 function LoadedSpecies(s::BaseSpecies, idx::Int64)
     T = get_species_type(s)
 
-    LoadedSpecies{T}(s.charge_state, s.name, s.symbol, s.element, s.mass, s.atomic_number, idx)
+    LoadedSpecies{T}(s.charge_state, s.name, s.symbol, s.element, s.mass, s.atomic_number, idx, [false])
 end
 
 type(s::AbstractLoadedSpecies{T}) where {T} = T

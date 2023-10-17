@@ -1,9 +1,15 @@
 module FusionSpecies
+
 import PeriodicTable
 using Logging
 using Crayons.Box
 using DocStringExtensions
 using Unitful
+using PrecompileTools
+
+
+
+
 m_e = 9.1093837015e-31
 dic_expo = Dict{}()
 dic_expo[1] = "¹"
@@ -24,7 +30,7 @@ include("registry.jl")
 include("getter.jl")
 include("iterators.jl")
 
-dummy_loaded_species = LoadedSpecies{DummyParticles}(0.0, "dummy", :dummy, dummy_element, 0.0, 0, 0)
+dummy_loaded_species = LoadedSpecies{DummyParticles}(0.0, "dummy", :dummy, dummy_element, 0.0, 0, 0, [false])
 function convert_macro_kwargs(args)
     aargs = []
     aakws = Pair{Symbol,Any}[]
@@ -166,14 +172,14 @@ macro add_species(objs...)
 end
 
 
-
+#@compile_workload begin
 @create_elements H He Be C Si W Ne Ar Xe
 @create_element ∅ mass = 0 name = dummy atomic_number = 0 density = 0.0
 @create_element D mass = 2 * H.mass name = deuterium atomic_number = 1 density = 0.0
 @create_element T mass = 3 * H.mass name = tritium atomic_number = 1 density = 0.0
 @create_element e mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
 @create_species
-
+#end
 # macro setup_species()
 #     expr = quote
 #         setup_species()
@@ -311,13 +317,13 @@ end
 
 "$TYPEDSIGNATURES display available elements"
 show_elements() = show(element_registry)
-name(species::Vector{<:AbstractElement}) = join([stringstyled(string(s.symbol); color=:orange, bold=true) for s in species], " ")
-name(species::Vector{<:AbstractSpecies}) = join([stringstyled(string(s.symbol); color=:magenta, bold=true) for s in species], " ")
-name(species::Vector{Symbol}) = join([stringstyled(s; color=:magenta, bold=true) for s in species], " ")
-name(species_set::SpeciesSet) = join(name.(species_set.list_species), " ")
-name(species::AbstractSpecies) = stringstyled(string(species.symbol); color=:magenta, bold=true)
-name(species::AbstractElement) = stringstyled(string(species.symbol); color=:orange, bold=true)
-inline_summary(species_set::SpeciesSet) = join([name(species) * "[$(species.index)]" for species in species_set.list_species], " ")
+name_(species::Vector{<:AbstractElement}) = join([stringstyled(string(s.symbol); color=:orange, bold=true) for s in species], " ")
+name_(species::Vector{<:AbstractSpecies}) = join([stringstyled(string(s.symbol); color=:magenta, bold=true) for s in species], " ")
+name_(species::Vector{Symbol}) = join([stringstyled(s; color=:magenta, bold=true) for s in species], " ")
+name_(species_set::SpeciesSet) = join(name_.(species_set.list_species), " ")
+name_(species::AbstractSpecies) = stringstyled(string(species.symbol); color=:magenta, bold=true)
+name_(species::AbstractElement) = stringstyled(string(species.symbol); color=:orange, bold=true)
+inline_summary(species_set::SpeciesSet) = join([name_(species) * "[$(species.index)]" for species in species_set.list_species], " ")
 Base.:!(s::LoadedSpecies) = get_species_except(s)
 
 Base.to_index(s::LoadedSpecies) = Base.to_index(s.index)
@@ -351,9 +357,10 @@ end
 const Elements = Union{Element,Vector{<:Element}}
 export show_elements, get_element, add_species, show_species, create_species
 export @reset_species, @add_plasma_species
-export import_species
-export AbstractSpecies, BaseSpecies
-export base_species_registry
-export species_registry
-export get_species, get_species, get_species_set, get_electron_species, setup_species
+export import_species, is_set
+export base_species_registry, species_registry
+export get_species, get_species, get_species_set, get_electron_species, setup_species, get_species_index, get_electron_index
+export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_mass, get_electron_index
+export AbstractSpecies, BaseSpecies, SpeciesSet, LoadedSpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
+
 end
