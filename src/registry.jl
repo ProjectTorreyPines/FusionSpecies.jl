@@ -68,6 +68,6 @@ macro reset_species()
 end
 
 function get_species_registry(; lock=true)
-    check_status_species_registry(; lock=lock, message="run first @setup_variables")
+    check_status_species_registry(; lock=lock, message="run first @setup_model")
     return species_registry
 end
