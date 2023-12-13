@@ -1,6 +1,6 @@
 get_type_species(z::Int64) = get_type_species(float(z))
 
-function get_species_type(s::BaseSpecies)::Type{<:Particles}
+function get_species_particle_type(s::BaseSpecies)::Type{<:Particles}
     if s.symbol == :D¹⁺
         T = MainIon
     elseif s.symbol == :D⁰
@@ -13,6 +13,10 @@ function get_species_type(s::BaseSpecies)::Type{<:Particles}
         return Electron
     end
 end
+
+get_species_abstract_type(s::AbstractSpecies{T}) where T = AbstractSpecies{<:T}
+
+
 
 function get_type_species(z::Float64)
     if z > 0
@@ -245,19 +249,21 @@ get_species_index(species::Vector{Int64})::Vector{Int64} = species
 get_species_index(species::Vector{<:AbstractSpecies})::Vector{Int64} = Vector{Int64}([s.index for s in species])
 # get_species_index() ::Vector{Int64} = get_species_index(get_species())
 get_species_index(species_set::SpeciesSet)::Vector{Int64} = get_species_index(species_set.list_species)
-function get_species_index(species_set::SpeciesSet, s::Symbol)
-    if s == :all
-        get_species_index(species_set)
-    elseif s == :electron
-        get_electron_index(species_set)
-    elseif s == :ions
-        get_ions_index(species_set)
-    elseif s isa Symbol
-        [ss.index for ss in filter(x -> Symbol(x.symbol) == s, species_set.list_species)]
-    else
+get_species_index(species_set::SpeciesSet, s::Symbol) = get_species_index(get_species(species_set,s))
+#             return species_category[s](species_set)
+#     else
+#     if s == :all
+#         get_species_index(species_set)
+#     elseif s == :electron
+#         get_electron_index(species_set)
+#     elseif s == :ions
+#         get_ions_index(species_set)
+#     elseif s isa Symbol
+#         [ss.index for ss in filter(x -> Symbol(x.symbol) == s, species_set.list_species)]
+#     else
 
-    end
-end
+#     end
+# end
 get_species_index(species_set::SpeciesSet, s::AbstractSpecies) = get_species_index(species_set, [s])
 get_species_index(species_set::SpeciesSet, s::Vector{<:AbstractSpecies}) = getproperty.([ss for ss in get_species(species_set, s)], :index)
 get_species_index(species_set::SpeciesSet, s::Vector{Int64}) = getproperty.([ss for ss in get_species(species_set, s)], :index)
@@ -341,6 +347,8 @@ get_species_parameters(; kw...) = SpeciesParameters(; kw...)
 const species_category = Dict(:all => get_all,
     :ions => get_ions,
     :imp_ions => get_imp_ions,
+    :main_ion => get_main_ion,
+    :main_ions => get_main_ion,
     :imp_atoms => get_imp_atoms,
     :atoms => get_atoms,
     :molecules => get_molecules,

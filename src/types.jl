@@ -1,11 +1,14 @@
-abstract type AbstractSpecies end
 abstract type Particles end
-abstract type AbstractLoadedSpecies{T<:Particles} <: AbstractSpecies end
-abstract type AbstractBaseSpecies <: AbstractSpecies end
+abstract type AbstractSpecies{T<:Particles} end
+
+abstract type AbstractLoadedSpecies{T<:Particles} <: AbstractSpecies{T} end
+abstract type AbstractBaseSpecies{T} <: AbstractSpecies{T} end
 abstract type BaseSpeciesParameters end
 
 abstract type DummyParticles <: Particles end
 abstract type AbstractElement end
+
+
 abstract type ChargedParticles <: Particles end
 abstract type Electron <: ChargedParticles end
 abstract type Ions <: ChargedParticles end
@@ -20,9 +23,23 @@ abstract type ImpurityAtom <: Atoms end
 abstract type ImpurityIon <: Ions end
 abstract type MainIon <: Ions end
 
+const ChargedParticleSpecies = AbstractSpecies{<:ChargedParticles}
+const ElectronSpecies = AbstractSpecies{<:Electron}
+const IonSpecies = AbstractSpecies{<:Ions}
+const NeutralSpecies = AbstractSpecies{<:Neutrals}
+const AtomSpecies = AbstractSpecies{<:Atoms}
+const MoleculeSpecies = AbstractSpecies{<:Molecules}
+
+# const ImpurityMoleculeSpecies = AbstractSpecies{<:ImpurityMolecule}
+# const MainMoleculeSpecies = AbstractSpecies{<:MainMolecule}
+# const MainAtomSpecies = AbstractSpecies{<:MainAtom}
+# const ImpurityAtomSpecies = AbstractSpecies{<:ImpurityAtom}
+# const ImpurityIonSpecies = AbstractSpecies{<:ImpurityIon}
+# const MainIonSpecies = AbstractSpecies{<:MainIon}
+
 const IonsAtoms = Union{Ions,Atoms}
 
-struct BaseSpecies{T} <: AbstractBaseSpecies
+struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     charge_state::Float64
     name::String
     symbol::Symbol
@@ -50,7 +67,7 @@ struct LoadedSpecies{T<:Particles} <: AbstractLoadedSpecies{T}
 end
 
 function LoadedSpecies(s::BaseSpecies, idx::Int64)
-    T = get_species_type(s)
+    T = get_species_particle_type(s)
 
     LoadedSpecies{T}(s.charge_state, s.name, s.symbol, s.element, s.mass, s.atomic_number, idx, [false])
 end
