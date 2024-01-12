@@ -182,5 +182,5 @@ Species = Union{Vector{<:AbstractSpecies},Vector{Symbol},Symbol,FusionSpecies.Ab
 
 #name(species::Species) = name(get_species(species))
 
-get_species_index(sp::SpeciesParameters, s::Species) = get_species_index(sp.species_set, s)
+get_species_index(sp::SpeciesParameters, s::Union{Species,Vector}) = get_species_index(sp.species_set, s)
 get_species_index(sp::SpeciesParameters, e::AbstractElement) = get_species_index(sp.species_set, get_species(sp.species_set, e))
