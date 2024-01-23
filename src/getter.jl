@@ -17,7 +17,6 @@ end
 get_species_abstract_type(s::AbstractSpecies{T}) where T = AbstractSpecies{<:T}
 
 
-
 function get_type_species(z::Float64)
     if z > 0
         return Ions
@@ -345,6 +344,7 @@ get_electron_species(species_set::SpeciesSet) = get_electron(species_set)
 
 get_species_parameters(; kw...) = SpeciesParameters(; kw...)
 
+get_nspc(species_set::SpeciesSet) = length(species_set.list_species)
 
 const species_category = Dict(:all => get_all,
     :ions => get_ions,
