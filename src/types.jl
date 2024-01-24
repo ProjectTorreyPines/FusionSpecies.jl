@@ -195,4 +195,4 @@ end
 
 
 get_charge_states(species_parameters::SpeciesParameters) = SpeciesChargeStates(species_parameters.Z)
-get_charge_states(species_parameters::SpeciesParameters) = SpeciesMass(species_parameters.mass)
+get_mass(species_parameters::SpeciesParameters) = SpeciesMass(species_parameters.mass)
