@@ -319,7 +319,7 @@ Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
 
 
 get_species(species_set::SpeciesSet, element::Element) = filter(x -> x.element == element, species_set.list_species)
-get_species(species_set::SpeciesSet, s::Vector{Any})::Vector{AbstractSpecies} = vcat([get_species(species_set,sp) for sp in s]...)
+get_species(@nospecialize(species_set::SpeciesSet), @nospecialize(s::Vector))::Vector{AbstractSpecies} = vcat([get_species(species_set, sp) for sp in s]...)
 get_species(species_set::SpeciesSet, elements::Vector{<:Element}) = filter(x -> x.element ∈ elements, species_set.list_species)
 get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x -> x != species, species_set.list_species)
 get_species(species_set::SpeciesSet, element::Element, Z::Int64) = get_species(species_set, get_species_symbol(element.symbol, Z))
