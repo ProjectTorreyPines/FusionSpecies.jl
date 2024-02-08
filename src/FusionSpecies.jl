@@ -24,13 +24,14 @@ dic_expo[9] = "⁹"
 dic_expo[0] = "⁰"
 dic_expo["+"] = "⁺"
 dic_expo["-"] = "⁻"
+include("properties.jl")
 include("types.jl")
 include("elements.jl")
 include("registry.jl")
 include("getter.jl")
 include("iterators.jl")
 
-dummy_loaded_species = LoadedSpecies{DummyParticles}(0.0, "dummy", :dummy, dummy_element, 0.0, 0, 0, [false])
+dummy_loaded_species = LoadedSpecies{DummyParticles}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
 function convert_macro_kwargs(args)
     aargs = []
     aakws = Pair{Symbol,Any}[]
@@ -78,7 +79,7 @@ macro create_species()
     for el in values(element_registry)
 
         if get_element_type(el) == Atoms
-            for z in 0:el.atomic_number
+            for z in 0:el.atomic_number.value
                 n = get_species_symbol(el.symbol, z)
                 #println("Adding $n ------")
                 expr = :($n = BaseSpecies($el, $z))
@@ -172,36 +173,13 @@ macro add_species(objs...)
 end
 
 
-#@compile_workload begin
 @create_elements H He Be C Si W Ne Ar Xe
 @create_element ∅ mass = 0 name = dummy atomic_number = 0 density = 0.0
 @create_element D mass = 2 * H.mass name = deuterium atomic_number = 1 density = 0.0
 @create_element T mass = 3 * H.mass name = tritium atomic_number = 1 density = 0.0
 @create_element e mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
 @create_species
-#end
-# macro setup_species()
-#     expr = quote
-#         setup_species()
-#     end
 
-#     for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
-#         ss = s.symbol
-#         sss = string(s.symbol)
-#         push!(expr.args, :($ss = get_species(Symbol($sss))))
-#     end
-#     list_elements = []
-#     for s in [v for v in values(species_registry) if v isa AbstractLoadedSpecies]
-#         ss = get_element(s).symbol
-#         sss = string(ss)
-#         push!(list_elements, (ss, sss))
-#     end
-#     unique!(list_elements)
-#     for (n, s) in list_elements
-#         push!(expr.args, :($n = get_element(Symbol($s))))
-#     end
-#     esc(expr)
-# end
 
 
 
@@ -217,6 +195,7 @@ function import_species()
     end
 end
 import_species()
+
 
 
 
@@ -360,7 +339,7 @@ export @reset_species, @add_plasma_species
 export import_species, is_set
 export base_species_registry, species_registry
 export get_species, get_species, get_species_set, get_electron_species, setup_species, get_species_index, get_electron_index
-export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_mass, get_electron_index, get_species_abstract_type
+export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_masses, get_electron_index, get_species_abstract_type
 export AbstractSpecies, BaseSpecies, SpeciesSet, LoadedSpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
 export ElectronSpecies, IonSpecies
 end
