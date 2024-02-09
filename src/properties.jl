@@ -54,7 +54,7 @@ struct SpeciesIndex <: AbstractSpeciesIndex
     value::Int64
 end
 SpeciesIndex(i::SpeciesIndex) = SpeciesIndex(i.value)
-struct SpeciesIndexes <: AbstractSpeciesIndexes
+@add_gpu_struct struct SpeciesIndexes <: AbstractSpeciesIndexes
     value::Vector{Int64}
 end
 

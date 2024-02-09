@@ -6,8 +6,8 @@ using Crayons.Box
 using DocStringExtensions
 using Unitful
 using PrecompileTools
-
-
+using MacroTools
+using Adapt
 
 
 m_e = 9.1093837015e-31
@@ -24,6 +24,7 @@ dic_expo[9] = "⁹"
 dic_expo[0] = "⁰"
 dic_expo["+"] = "⁺"
 dic_expo["-"] = "⁻"
+include("gpu_generator.jl")
 include("properties.jl")
 include("types.jl")
 include("elements.jl")
@@ -332,7 +333,7 @@ function stringstyled(str::AbstractString; color::Union{Int,Symbol}=:normal,
     return enable_ansi * str * disable_ansi
 end
 
-
+include(get_generated_gpu_struct_filename())
 const Elements = Union{Element,Vector{<:Element}}
 export show_elements, get_element, add_species, show_species, create_species
 export @reset_species, @add_plasma_species
