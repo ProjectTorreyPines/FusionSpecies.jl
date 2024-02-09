@@ -48,7 +48,7 @@ struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     atomic_number::SpeciesAtomicNumber
 
 end
-BaseSpecies(e::AbstractElement, z::ElementAtomicNumber) = BaseSpecies(e,z.value)
+BaseSpecies(e::AbstractElement, z::ElementAtomicNumber) = BaseSpecies(e, z.value)
 function BaseSpecies(e::AbstractElement, z::Int64)
     T = get_type_species(z)
     s = get_species_symbol(e.symbol, z)
@@ -130,7 +130,7 @@ end
 
 
 
-doc(s::SpeciesParameters) = "nspc=$(length(s.Z))"
+sdoc(s::SpeciesParameters) = "nspc=$(length(s.Z))"
 
 
 get_electron(sp::SpeciesParameters; kw...) = get_electron(sp.species_set; kw...)
@@ -149,4 +149,4 @@ get_species_indexes(sp::SpeciesParameters, e::AbstractElement) = get_species_ind
 
 get_species_charge_states(species_parameters::SpeciesParameters) = species_parameters.Z
 get_species_masses(species_parameters::SpeciesParameters) = SpeciesMasses(species_parameters.mass)
-export get_species_masses, get_species_charge_states 
+export get_species_masses, get_species_charge_states

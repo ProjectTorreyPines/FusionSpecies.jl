@@ -381,3 +381,6 @@ function SpeciesParameters(species_set::SpeciesSet; kw...)
     d[:species_set] = species_set
     return SpeciesParameters([d[f] for f in fieldnames(SpeciesParameters)]...)
 end
+
+SpeciesIndexes(species_set::SpeciesSet, species) = get_species_indexes(species_set, species)
+SpeciesIndexes(species_set::SpeciesSet, species::SpeciesIndexes) = species
