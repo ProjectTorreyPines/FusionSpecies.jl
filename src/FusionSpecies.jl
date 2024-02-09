@@ -302,7 +302,7 @@ name_(species::Vector{Symbol}) = join([stringstyled(s; color=:magenta, bold=true
 name_(species_set::SpeciesSet) = join(name_.(species_set.list_species), " ")
 name_(species::AbstractSpecies) = stringstyled(string(species.symbol); color=:magenta, bold=true)
 name_(species::AbstractElement) = stringstyled(string(species.symbol); color=:orange, bold=true)
-inline_summary(species_set::SpeciesSet) = join([name_(species) * "[$(species.index)]" for species in species_set.list_species], " ")
+inline_summary(species_set::SpeciesSet) = join([name_(species) * "[$(species.index.value)]" for species in species_set.list_species], " ")
 Base.:!(s::LoadedSpecies) = get_species_except(s)
 
 Base.to_index(s::LoadedSpecies) = Base.to_index(s.index)
