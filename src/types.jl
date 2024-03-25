@@ -142,8 +142,7 @@ get_species_index(sp::SpeciesParameters) = get_species_index(sp.species_set)
 Species = Union{Vector{<:AbstractSpecies},Vector{Symbol},Symbol,FusionSpecies.AbstractSpecies,Int64,Vector{Int64}}
 
 #name(species::Species) = name(get_species(species))
-get_species_indexes(sp::SpeciesParameters, s::AbstractSpeciesIndexes) = get_species_indexes(sp.species_set, s)
-get_species_indexes(sp::SpeciesParameters, s::Union{Species,Vector}) = get_species_indexes(sp.species_set, s)
+get_species_indexes(sp::SpeciesParameters, s::Union{Symbol,Species,Vector,AbstractSpeciesIndexes}) = get_species_indexes(sp.species_set, s)
 get_species_indexes(sp::SpeciesParameters, e::AbstractElement) = get_species_indexes(sp.species_set, get_species(sp.species_set, e))
 
 

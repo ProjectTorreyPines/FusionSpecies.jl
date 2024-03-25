@@ -164,11 +164,11 @@ get_all(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector
 
 "$TYPEDSIGNATURES get a list of the mass of active species"
 get_species_masses(species_set::SpeciesSet) :: SpeciesMasses = SpeciesMasses([s.mass for s in species_set.list_species])
-
+SpeciesMasses(species_set::SpeciesSet) = get_species_masses(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 
 get_species_charge_states(s::AbstractSpecies)::SpeciesChargeStates = SpeciesChargeStates(s.charge_state)
-
+SpeciesChargeStates(species_set::SpeciesSet) = get_species_charge_states(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 get_species_charge_states(species_set::SpeciesSet)::SpeciesChargeStates = SpeciesChargeStates([s.charge_state for s in species_set.list_species])
 
@@ -183,6 +183,9 @@ get_imp_ions(species_set::SpeciesSet) = get_species(species_set, ImpurityIon)
 
 "$TYPEDSIGNATURES get a list of ions among active species"
 get_imp_atoms(species_set::SpeciesSet) = get_species(species_set, ImpurityAtom)
+
+"$TYPEDSIGNATURES get a list of ions among active species"
+get_impurities(species_set::SpeciesSet) = get_species(species_set, Union{ImpurityAtom,ImpurityIon})
 
 "$TYPEDSIGNATURES get a list of atoms among active species"
 get_atoms(species_set::SpeciesSet) = get_species(species_set, Atoms)
@@ -250,6 +253,7 @@ get_species_index(s::Nothing)::SpeciesIndex = SpeciesIndex(missing)
 get_species_index(s::Int64)::SpeciesIndex = SpeciesIndex(s)
 get_species_index(s::AbstractLoadedSpecies)::SpeciesIndex = SpeciesIndex(s.index)
 get_species_index(species_set::SpeciesSet, s::Int64)::SpeciesIndex = get_species_index(get_species(species_set, s))
+get_species_index(species_set::SpeciesSet, s::Union{Symbol,AbstractSpecies})::SpeciesIndex = get_species_index(get_species(species_set, s))
 get_species_indexes(species::Vector{Bool})::SpeciesIndexes = SpeciesIndexes([i for (i, as) in enumerate(species) if as])
 get_species_indexes(species::Vector{Int64})::SpeciesIndexes = SpeciesIndexes(species)
 get_species_indexes(species::Vector{<:AbstractSpecies})::SpeciesIndexes = length(species) > 0 ? SpeciesIndexes([s.index for s in species]) : SpeciesIndexes()
@@ -350,12 +354,14 @@ get_species_parameters(; kw...) = SpeciesParameters(; kw...)
 get_nspc(species_set::SpeciesSet) = length(species_set.list_species)
 
 const species_category = Dict(:all => get_all,
+    :default => get_all,
     :ions => get_ions,
     :imp_ions => get_imp_ions,
     :main_ion => get_main_ion,
     :main_ions => get_main_ion,
     :imp_atoms => get_imp_atoms,
     :atoms => get_atoms,
+    :impurities => get_impurities,
     :molecules => get_molecules,
     :neutrals => get_neutrals,
     :electron => get_electron,
@@ -382,5 +388,5 @@ function SpeciesParameters(species_set::SpeciesSet; kw...)
     return SpeciesParameters([d[f] for f in fieldnames(SpeciesParameters)]...)
 end
 
-SpeciesIndexes(species_set::SpeciesSet, species) = get_species_indexes(species_set, species)
+SpeciesIndexes(species_set::SpeciesSet, args...) = get_species_indexes(species_set, args...)
 SpeciesIndexes(species_set::SpeciesSet, species::SpeciesIndexes) = species

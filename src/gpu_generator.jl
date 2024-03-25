@@ -31,8 +31,7 @@ end
 
 function make_gpu_struct(ex)
     blk = Expr(:block)
-    P = collect('A':'Z')
-    P = Symbol.([p * p * p for p in P])
+    P = Symbol.([p * p * p for p in collect('A':'Z')])
     eq_struct = MacroTools.splitstructdef(ex)
     #new_struct = deepcopy(old_struct)
     #config_struct = deepcopy(old_struct)

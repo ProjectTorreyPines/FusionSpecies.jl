@@ -31,11 +31,11 @@ include("elements.jl")
 include("registry.jl")
 include("getter.jl")
 include("iterators.jl")
-
+using OrderedCollections
 dummy_loaded_species = LoadedSpecies{DummyParticles}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
 function convert_macro_kwargs(args)
     aargs = []
-    aakws = Pair{Symbol,Any}[]
+    aakws = Pair{Any,Any}[]
     for el in args
         if Meta.isexpr(el, :(=))
             push!(aakws, Pair(el.args...))
@@ -43,7 +43,7 @@ function convert_macro_kwargs(args)
             push!(aargs, el)
         end
     end
-    kwargs = Dict(aakws)
+    kwargs = OrderedDict(aakws)
     return aargs, kwargs
 end
 
