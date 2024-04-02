@@ -164,11 +164,11 @@ get_all(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector
 
 "$TYPEDSIGNATURES get a list of the mass of active species"
 get_species_masses(species_set::SpeciesSet) :: SpeciesMasses = SpeciesMasses([s.mass for s in species_set.list_species])
-SpeciesMasses(species_set::SpeciesSet) = get_species_masses(species_set)
+SpeciesMasses(species_set::SpeciesSet; kw...) = get_species_masses(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 
 get_species_charge_states(s::AbstractSpecies)::SpeciesChargeStates = SpeciesChargeStates(s.charge_state)
-SpeciesChargeStates(species_set::SpeciesSet) = get_species_charge_states(species_set)
+SpeciesChargeStates(species_set::SpeciesSet; kw...) = get_species_charge_states(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 get_species_charge_states(species_set::SpeciesSet)::SpeciesChargeStates = SpeciesChargeStates([s.charge_state for s in species_set.list_species])
 
@@ -229,7 +229,7 @@ get_ions_atoms_indexes(species_set::SpeciesSet)::SpeciesIndexes = get_species_in
 
 " $TYPEDSIGNATURES return the index of the electron species"
 function get_electron_index(species_set::SpeciesSet; enforce=false)::ElectronIndex
-    e = get_electron(species_set)
+    e = get_electron(species_set; enforce)
     if e isa LoadedSpecies{<:Electron}
         idx = ElectronIndex(e.index)
     else
@@ -257,7 +257,11 @@ get_species_index(species_set::SpeciesSet, s::Union{Symbol,AbstractSpecies})::Sp
 get_species_indexes(species::Vector{Bool})::SpeciesIndexes = SpeciesIndexes([i for (i, as) in enumerate(species) if as])
 get_species_indexes(species::Vector{Int64})::SpeciesIndexes = SpeciesIndexes(species)
 get_species_indexes(species::Vector{<:AbstractSpecies})::SpeciesIndexes = length(species) > 0 ? SpeciesIndexes([s.index for s in species]) : SpeciesIndexes()
+get_species_indexes(species::AbstractSpecies)::SpeciesIndexes = get_species_indexes([species])
+
+
 get_species_indexes(species_set::SpeciesSet, s::Int64)::SpeciesIndexes = get_species_indexes(species_set, get_species(species_set, s))
+get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes([])
 get_species_indexes(species_set::SpeciesSet)::SpeciesIndexes= get_species_indexes(species_set.list_species)
 get_species_indexes(species_set::SpeciesSet, s::Symbol)::SpeciesIndexes = get_species_indexes(get_species(species_set, s))
 
@@ -361,6 +365,7 @@ const species_category = Dict(:all => get_all,
     :main_ions => get_main_ion,
     :imp_atoms => get_imp_atoms,
     :atoms => get_atoms,
+    :impurity => get_impurities,
     :impurities => get_impurities,
     :molecules => get_molecules,
     :neutrals => get_neutrals,
