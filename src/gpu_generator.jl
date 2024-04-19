@@ -49,7 +49,6 @@ function make_gpu_struct(ex)
     fieldtypes = [p isa Expr ? p.args[1] : (p isa Symbol ? p : p[1]) for p in types]
     fieldnames = [f[1] for f in eq_struct[:fields]]
     new_fields = [(f, p) for (f, p) in zip(fieldnames, P)]
-    #new_fields_config = [(f, p) for (f, p) in zip(fieldnames, P) if f != :log]
     old_params = [p isa Expr ? p.args[1] : (p isa Symbol ? p : p[1]) for p in eq_struct[:params]]
 
     fieldtypes = [p isa Expr ? p.args[1] : (p isa Symbol ? p : p[1]) for p in types]

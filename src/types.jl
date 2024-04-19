@@ -46,8 +46,14 @@ struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     element::AbstractElement
     mass::SpeciesMass
     atomic_number::SpeciesAtomicNumber
-
 end
+
+function Base.getproperty(s::AbstractSpecies, f::Symbol)
+    f == :Z && return getfield(s,:charge_state)
+    f == :m && return getfield(s, :mass)
+    return getfield(s,f)
+end
+
 BaseSpecies(e::AbstractElement, z::ElementAtomicNumber) = BaseSpecies(e, z.value)
 function BaseSpecies(e::AbstractElement, z::Int64)
     T = get_type_species(z)
@@ -82,7 +88,7 @@ struct SpeciesSet{T<:AbstractLoadedSpecies}
 end
 get_elements(species_set::SpeciesSet) = unique([s.element for s in species_set.list_species])
 
-is_set(s::SpeciesSet) = s.lock[1]
+Base.isempty(s::SpeciesSet) = isempty(s.list_species)
 
 function SpeciesSet(v::Vector{T}) where {T<:AbstractLoadedSpecies}
     dic_species = Dict{Int64,T}()

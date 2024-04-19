@@ -107,10 +107,10 @@ end
 function get_electron(species_set::SpeciesSet; enforce=true)
     ss = [s for s in get_species(species_set) if type(s) <: Electron]
     if enforce isa String || enforce
-        @assert length(ss) == 1 enforce
+        @assert length(ss) == 1 "cannot find an electron in the species set:$species_set. \n Did you add electrons to the simulation...? "
     end
 
-@assert length(ss) < 2 "none or more than one electron species found."
+    @assert length(ss) < 2 "none or more than one electron species found in the species set:$species_set."
     if length(ss) == 1
         return ss[1]
     elseif length(ss) == 0
@@ -270,8 +270,16 @@ get_species_indexes(species_set::SpeciesSet, s::AbstractSpeciesIndexes) = get_sp
 function get_species_indexes(species_set::SpeciesSet, s::Union{Vector{<:Any},Vector{<:AbstractSpecies},Vector{Symbol},Vector{Int64}})::SpeciesIndexes 
      length(get_species(species_set, s)) > 0 ? SpeciesIndexes([ss.index for ss in get_species(species_set, s)]) : SpeciesIndexes()
 end
-
-
+@inline tuplejoin(x) = x
+@inline tuplejoin(x, y) = (x..., y...)
+@inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
+get_species(el::Element) = Tuple(s for s in element_species_registry[el])
+get_species(els::Vector{<:Element}) = tuplejoin((get_species(el) for el in els)...)
+iterate_species(species_set::SpeciesSet, arg::Vararg{N,<:Union{AbstractElement,AbstractSpecies}}) where {N} = iterate_species(species_set, [arg...])
+iterate_species(arg::Vararg{N,<:Union{AbstractElement,AbstractSpecies}}) where {N} = iterate_species([arg...])
+iterate_species(species::Vector)= Base.IteratorsMD.flatten(((get_species(s) for s in species)...,))
+iterate_species(species_set::SpeciesSet, species::Vector) = Base.IteratorsMD.flatten(((get_species(species_set,s) for s in species)...,))
+ export iterate_species
 
 
 
@@ -374,7 +382,7 @@ const species_category = Dict(:all => get_all,
 )
 
 function SpeciesParameters(species_set::SpeciesSet; kw...)
-    @assert is_set(species_set)
+    @assert !isempty(species_set)
     d = Dict()
 
     d[:mass] = get_species_masses(species_set)

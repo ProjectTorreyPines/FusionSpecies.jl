@@ -82,7 +82,6 @@ macro create_species()
         if get_element_type(el) == Atoms
             for z in 0:el.atomic_number.value
                 n = get_species_symbol(el.symbol, z)
-                #println("Adding $n ------")
                 expr = :($n = BaseSpecies($el, $z))
                 push!(blk.args, expr)
                 expr = :(add2registry($n))
@@ -157,6 +156,11 @@ function add_species(obj::BaseSpecies, species_set::SpeciesSet)
 end
 
 add_species(obj::Symbol, species_set::SpeciesSet) = add_species(getfield(@__MODULE__, obj), species_set)
+function get_species(obj::Symbol) 
+    species_set = LoadedSpeciesSet()
+     add_species(getfield(@__MODULE__, obj), species_set)
+    return species_set
+end
 
 function add_species(obj::Element, species_set::SpeciesSet)
     check_status(species_set)
@@ -164,6 +168,8 @@ function add_species(obj::Element, species_set::SpeciesSet)
         add_species(s, species_set)
     end
 end
+
+
 
 macro add_species(objs...)
     for obj in objs
@@ -178,11 +184,10 @@ end
 @create_element ∅ mass = 0 name = dummy atomic_number = 0 density = 0.0
 @create_element D mass = 2 * H.mass name = deuterium atomic_number = 1 density = 0.0
 @create_element T mass = 3 * H.mass name = tritium atomic_number = 1 density = 0.0
-@create_element e mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
+@create_element ℯ mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
 @create_species
 
-
-
+e⁻ = ℯ⁻
 
 function import_species()
     for L in names(@__MODULE__, all=true)
@@ -200,20 +205,8 @@ import_species()
 
 
 
-function setup_species()
-    reorder_species_index(species_registry)
-    list_species = [v for (k, v) in species_registry if typeof(v) <: AbstractLoadedSpecies]
-    @assert length(unique(list_species)) == length(list_species)
 
-    list_idx = [v.index for (k, v) in species_registry if typeof(v) <: AbstractLoadedSpecies]
-    @assert length(unique(list_idx)) == length(list_idx)
-
-    species_registry["species_set"] = LoadedSpeciesSet(species_registry)
-    species_registry["locked"] = true
-    show(species_registry["species_set"])
-end
-
-function setup_species(species_set::SpeciesSet)
+function setup_species!(species_set::SpeciesSet)
     reorder_species_index(species_set)
 
     list_species = species_set.list_species
@@ -275,17 +268,12 @@ end
 
 
 function Base.show(io::IO, ::MIME"text/plain", species_set::SpeciesSet)
-    println("species set")
-    for s in species_set
-        println(s)
-    end
+
+    print(io, stringstyled("⟦", color=20) * (isempty(species_set) ? "∅" : join(name_.(species_set.list_species), "; ")) * stringstyled("⟧", color=20))
 end
 
 function Base.show(io::IO, species_set::SpeciesSet{T}) where {T}
-    println("species set")
-    for s in species_set
-        println(s)
-    end
+    print(io, stringstyled("⟦", color=20) * (isempty(species_set) ? "∅" : join(name_.(species_set.list_species),"; ")) * stringstyled("⟧", color=20))
 end
 
 function Base.show(io::IO, element_registry::ElementRegistry)
@@ -339,7 +327,7 @@ export show_elements, get_element, add_species, show_species, create_species
 export @reset_species, @add_plasma_species
 export import_species, is_set
 export base_species_registry, species_registry
-export get_species, get_species, get_species_set, get_electron_species, setup_species, get_species_index, get_electron_index
+export get_species, get_species, get_species_set, get_electron_species, get_species_index, get_electron_index
 export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_masses, get_electron_index, get_species_abstract_type
 export AbstractSpecies, BaseSpecies, SpeciesSet, LoadedSpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
 export ElectronSpecies, IonSpecies

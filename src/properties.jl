@@ -15,8 +15,9 @@ struct SpeciesChargeStates <: AbstractSpeciesProperties
     value::Vector{Float64}
 end
 SpeciesChargeStates(v::Vector{<:SpeciesChargeState}) = SpeciesChargeStates([s.value for s in v])
-
-
+for o in (:+,:-,:*,:/,:^)
+    eval(:(Base.$o(p::SpeciesChargeState, i) = $o(p.value, i)))
+end
 struct ElementMass <: AbstractElementProperty
     value::Float64
 end
