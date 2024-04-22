@@ -3,7 +3,7 @@ const BaseSpeciesRegistry = Dict{Int64,AbstractSpecies}
 const LoadedSpeciesRegistry = Dict{Union{Int64,String},Any}
 const element_species_registry = Dict{AbstractElement,Vector{AbstractSpecies}}()
 
-const species_registry = LoadedSpeciesRegistry("locked"=>false)
+const species_registry = LoadedSpeciesRegistry("locked" => false)
 const element_registry = ElementRegistry()
 const base_species_registry = BaseSpeciesRegistry()
 
@@ -17,7 +17,7 @@ function add2registry(s::AbstractSpecies)
     species_registry[length(species_registry)+1] = s
 end
 #function add2registry(s::getfield(@__MODULE__,:AbstractLoadedSpecies); registry=nothing)
-    function add2registry(s::AbstractLoadedSpecies; registry=nothing)
+function add2registry(s::AbstractLoadedSpecies; registry=nothing)
     if registry isa Nothing
         registry = species_registry
     end
@@ -32,7 +32,7 @@ end
 #     species_registry[length(species_registry)+1] = s
 # end
 
-function add2registry(e::AbstractElement,s::AbstractSpecies; registry=nothing)
+function add2registry(e::AbstractElement, s::AbstractSpecies; registry=nothing)
     if registry isa Nothing
         registry = element_species_registry
     end
@@ -40,34 +40,34 @@ function add2registry(e::AbstractElement,s::AbstractSpecies; registry=nothing)
         registry[e] = Vector{AbstractSpecies}()
     end
 
-    if  s ∉ registry[e]
-        push!(registry[e],s) 
+    if s ∉ registry[e]
+        push!(registry[e], s)
     end
 end
 
 function clean_registry(registry)
     for r in keys(registry)
-    delete!(registry,r)
+        delete!(registry, r)
     end
 end
 
 clean_registry(element_registry)
 
-function check_status_species_registry(;lock=false, message ="" )
+function check_status_species_registry(; lock=false, message="")
     @assert species_registry["locked"] == lock message * " | species_registry : $species_registry"
 end
 
-check_status(species_set::SpeciesSet;lock=false, message ="" ) = @assert species_set.lock[1] == lock message * " | species_registry : species_set_lock"
+check_status(species_set::SpeciesSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
 
 
 macro reset_species()
     for k in keys(species_registry)
-        delete!(species_registry,k)
+        delete!(species_registry, k)
     end
     species_registry["locked"] = false
-    end
+end
 
-    function get_species_registry(;lock=true) 
-        check_status_species_registry(;lock=lock, message="run first @setup_variables")
-        return species_registry 
-    end
+function get_species_registry(; lock=true)
+    check_status_species_registry(; lock=lock, message="run first @setup_model")
+    return species_registry
+end
