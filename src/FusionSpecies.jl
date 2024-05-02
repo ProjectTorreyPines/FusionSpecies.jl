@@ -255,7 +255,7 @@ function Base.show(io::IO, ::MIME"text/plain", species::LoadedSpecies)
 end
 
 function Base.show(io::IO, species::LoadedSpecies)
-    print(io, MAGENTA_FG("$(string(species.symbol))"), " [$(stype(species))][$(species.index)]")
+    print(io, MAGENTA_FG("$(string(species.symbol))"))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", element::AbstractElement)
@@ -263,12 +263,11 @@ function Base.show(io::IO, ::MIME"text/plain", element::AbstractElement)
 end
 
 function Base.show(io::IO, element::AbstractElement)
-    print(io, BLUE_FG("$(string(element.symbol))"), BLUE_FG(" $(element.name) - Z = $(string(element.atomic_number))"))
+    print(io, BLUE_FG("$(string(element.symbol))"))
 end
 
 
 function Base.show(io::IO, ::MIME"text/plain", species_set::SpeciesSet)
-
     print(io, stringstyled("⟦", color=20) * (isempty(species_set) ? "∅" : join(name_.(species_set.list_species), "; ")) * stringstyled("⟧", color=20))
 end
 
