@@ -249,7 +249,6 @@ get_ions_Z(species_set::SpeciesSet)::Vector{Float64} = [s.charge_state for s in 
 """$TYPEDSIGNATURES get a list of the index of active species
    $(METHODLIST)
 """
-get_species_index(s::Nothing)::SpeciesIndex = SpeciesIndex(missing)
 get_species_index(s::Int64)::SpeciesIndex = SpeciesIndex(s)
 get_species_index(s::AbstractLoadedSpecies)::SpeciesIndex = SpeciesIndex(s.index)
 get_species_index(species_set::SpeciesSet, s::Int64)::SpeciesIndex = get_species_index(get_species(species_set, s))
@@ -264,11 +263,11 @@ get_species_indexes(species_set::SpeciesSet, s::Int64)::SpeciesIndexes = get_spe
 get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes([])
 get_species_indexes(species_set::SpeciesSet)::SpeciesIndexes= get_species_indexes(species_set.list_species)
 get_species_indexes(species_set::SpeciesSet, s::Symbol)::SpeciesIndexes = get_species_indexes(get_species(species_set, s))
-
+get_species_index(t::Tuple{LoadedSpecies,LoadedSpecies}) = (get_species_indexes(t[1]), get_species_indexes(t[2]))
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpecies) = get_species_indexes(species_set, [s])
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpeciesIndexes) = get_species_indexes(species_set, s.value)
 function get_species_indexes(species_set::SpeciesSet, s::Union{Vector{<:Any},Vector{<:AbstractSpecies},Vector{Symbol},Vector{Int64}})::SpeciesIndexes 
-     length(get_species(species_set, s)) > 0 ? SpeciesIndexes([ss.index for ss in get_species(species_set, s)]) : SpeciesIndexes()
+     length(get_species(species_set, s)) > 0 ? SpeciesIndexes([get_species_index(ss) for ss in get_species(species_set, s)]) : SpeciesIndexes()
 end
 @inline tuplejoin(x) = x
 @inline tuplejoin(x, y) = (x..., y...)
@@ -337,12 +336,16 @@ function get_species(species_set::SpeciesSet, s::Int64; kw...)
 end
 
 get_species(species_set::SpeciesSet, element::Element) = filter(x -> x.element == element, species_set.list_species)
-get_species(@nospecialize(species_set::SpeciesSet), @nospecialize(s::Vector))::Vector{AbstractSpecies} = vcat([get_species(species_set, sp) for sp in s]...)
-get_species(species_set::SpeciesSet, s::SpeciesIndexes)::Vector{AbstractSpecies} =  get_species(species_set, s.value)
+get_species(@nospecialize(species_set::SpeciesSet), @nospecialize(s::Vector))::Vector = vcat([get_species(species_set, sp) for sp in s]...)
+get_species(species_set::SpeciesSet, s::SpeciesIndexes)::Vector =  get_species(species_set, s.value)
+get_species(species_set::SpeciesSet, s::Tuple{SpeciesIndexes,SpeciesIndexes})::Vector = [(get_species(species_set, s[1].value)[1], get_species(species_set, s[2].value)[1])]
+
 get_species(species_set::SpeciesSet, elements::Vector{<:Element}) = filter(x -> x.element ∈ elements, species_set.list_species)
 get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x -> x != species, species_set.list_species)
 get_species(species_set::SpeciesSet, element::Element, Z::Int64) = get_species(species_set, get_species_symbol(element.symbol, Z))
 get_species(species_set::SpeciesSet, species::LoadedSpecies) = species
+get_species(species_set::SpeciesSet, species::Tuple{LoadedSpecies,LoadedSpecies}) = species
+
 get_species(species_set::SpeciesSet, s::Vector{Int64}) = [ss for sss in s for ss in filter(x -> x.index.value == sss, species_set.list_species)]
 function get_species(species_set::SpeciesSet, s::Vector{T}) where {T<:Union{AbstractLoadedSpecies,Symbol}}
     out = Vector{LoadedSpecies}()
