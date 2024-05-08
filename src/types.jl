@@ -3,7 +3,7 @@ abstract type AbstractSpecies{T<:Particles} end
 
 abstract type AbstractLoadedSpecies{T<:Particles} <: AbstractSpecies{T} end
 abstract type AbstractBaseSpecies{T} <: AbstractSpecies{T} end
-abstract type BaseSpeciesParameters end
+
 
 abstract type DummyParticles <: Particles end
 abstract type AbstractElement end
@@ -117,8 +117,9 @@ function LoadedSpeciesSet(species_registry)
 end
 
 " species parameters in vector format "
-struct SpeciesParameters <: BaseSpeciesParameters
+struct SpeciesParameters
     mass::SpeciesMasses
+    μ::SpeciesReducedMasses
     Z::SpeciesChargeStates
     idx_e⁻::ElectronIndex
     all::SpeciesIndexes
@@ -154,4 +155,5 @@ get_species_indexes(sp::SpeciesParameters, e::AbstractElement) = get_species_ind
 
 get_species_charge_states(species_parameters::SpeciesParameters) = species_parameters.Z
 get_species_masses(species_parameters::SpeciesParameters) = SpeciesMasses(species_parameters.mass)
-export get_species_masses, get_species_charge_states
+get_species_reduced_masses(species_parameters::SpeciesParameters) = SpeciesReducedMasses(species_parameters.mass)
+export get_species_masses, get_species_reduced_masses, get_species_charge_states

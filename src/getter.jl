@@ -165,6 +165,11 @@ get_all(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector
 "$TYPEDSIGNATURES get a list of the mass of active species"
 get_species_masses(species_set::SpeciesSet) :: SpeciesMasses = SpeciesMasses([s.mass for s in species_set.list_species])
 SpeciesMasses(species_set::SpeciesSet; kw...) = get_species_masses(species_set)
+
+"$TYPEDSIGNATURES get a list of the mass of active species"
+get_species_reduced_masses(species_set::SpeciesSet)::SpeciesReducedMasses = SpeciesReducedMasses([s.mass for s in species_set.list_species])
+SpeciesReducedMasses(species_set::SpeciesSet; kw...) = get_species_reduced_masses(species_set)
+
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 
 get_species_charge_states(s::AbstractSpecies)::SpeciesChargeStates = SpeciesChargeStates(s.charge_state)
@@ -263,11 +268,15 @@ get_species_indexes(species_set::SpeciesSet, s::Int64)::SpeciesIndexes = get_spe
 get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes([])
 get_species_indexes(species_set::SpeciesSet)::SpeciesIndexes= get_species_indexes(species_set.list_species)
 get_species_indexes(species_set::SpeciesSet, s::Symbol)::SpeciesIndexes = get_species_indexes(get_species(species_set, s))
-get_species_index(t::Tuple{LoadedSpecies,LoadedSpecies}) = (get_species_indexes(t[1]), get_species_indexes(t[2]))
+get_species_index(t::Tuple{LoadedSpecies,LoadedSpecies}) = BinarySpeciesIndex(get_species_index(t[1]), get_species_index(t[2]))
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpecies) = get_species_indexes(species_set, [s])
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpeciesIndexes) = get_species_indexes(species_set, s.value)
 function get_species_indexes(species_set::SpeciesSet, s::Union{Vector{<:Any},Vector{<:AbstractSpecies},Vector{Symbol},Vector{Int64}})::SpeciesIndexes 
      length(get_species(species_set, s)) > 0 ? SpeciesIndexes([get_species_index(ss) for ss in get_species(species_set, s)]) : SpeciesIndexes()
+end
+
+function get_species_indexes(species_set::SpeciesSet, s::Vector{<:Tuple})::BinarySpeciesIndexes
+    length(get_species(species_set, s)) > 0 ? BinarySpeciesIndexes([get_species_index(ss) for ss in get_species(species_set, s)]) : BinarySpeciesIndexes()
 end
 @inline tuplejoin(x) = x
 @inline tuplejoin(x, y) = (x..., y...)
@@ -338,7 +347,6 @@ end
 get_species(species_set::SpeciesSet, element::Element) = filter(x -> x.element == element, species_set.list_species)
 get_species(@nospecialize(species_set::SpeciesSet), @nospecialize(s::Vector))::Vector = vcat([get_species(species_set, sp) for sp in s]...)
 get_species(species_set::SpeciesSet, s::SpeciesIndexes)::Vector =  get_species(species_set, s.value)
-get_species(species_set::SpeciesSet, s::Tuple{SpeciesIndexes,SpeciesIndexes})::Vector = [(get_species(species_set, s[1].value)[1], get_species(species_set, s[2].value)[1])]
 
 get_species(species_set::SpeciesSet, elements::Vector{<:Element}) = filter(x -> x.element ∈ elements, species_set.list_species)
 get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x -> x != species, species_set.list_species)
@@ -389,6 +397,7 @@ function SpeciesParameters(species_set::SpeciesSet; kw...)
     d = Dict()
 
     d[:mass] = get_species_masses(species_set)
+    d[:μ] = get_species_reduced_masses(species_set)
     d[:Z] = get_species_charge_states(species_set)
     d[:idx_e⁻] = get_electron_index(species_set; enforce=false)
     d[:all] = get_species_indexes(species_set)

@@ -51,13 +51,35 @@ struct SpeciesMasses <: AbstractSpeciesProperties
     value::Vector{Float64}
 end
 SpeciesMasses(v::Vector{<:SpeciesMass}) = SpeciesMasses([s.value for s in v])
+
+struct SpeciesReducedMass <: AbstractSpeciesProperty
+    value::Float64
+end
+SpeciesReducedMass(m::ElementMass) = SpeciesReducedMass(m.value)
+struct SpeciesReducedMasses <: AbstractSpeciesProperties
+    value::Matrix{Float64}
+end
+SpeciesReducedMasses(s::Vector{<:SpeciesMass}) = SpeciesReducedMasses(reshape([s1.value / (s1.value + s2.value) for (s1, s2) in Iterators.product(s, s)],length(s), length(s)))
+
+
 struct SpeciesIndex <: AbstractSpeciesIndex
     value::Int64
 end
 SpeciesIndex(i::SpeciesIndex) = SpeciesIndex(i.value)
-@add_gpu_struct struct SpeciesIndexes <: AbstractSpeciesIndexes
-    value::Vector{Int64}
+
+struct BinarySpeciesIndex
+    s1::Int64
+    s2::Int64
 end
+BinarySpeciesIndex(s1::SpeciesIndex, s2::SpeciesIndex) = BinarySpeciesIndex(s1.value, s2.value)
+
+
+
+@add_gpu_struct struct SpeciesIndexes{V<:Union{Vector{Int64},Vector{BinarySpeciesIndex}}} <: AbstractSpeciesIndexes
+    value::V
+end
+
+
 
 function SpeciesIndex(s::SpeciesIndexes)
     @assert length(s.value) == 1

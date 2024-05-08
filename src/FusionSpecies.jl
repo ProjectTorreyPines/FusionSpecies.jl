@@ -328,7 +328,7 @@ export @reset_species, @add_plasma_species
 export import_species, is_set
 export base_species_registry, species_registry
 export get_species, get_species, get_species_set, get_electron_species, get_species_index, get_electron_index
-export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_masses, get_electron_index, get_species_abstract_type
+export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_reduced_masses, get_species_masses, get_electron_index, get_species_abstract_type
 export AbstractSpecies, BaseSpecies, SpeciesSet, LoadedSpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
 export ElectronSpecies, IonSpecies
 end
