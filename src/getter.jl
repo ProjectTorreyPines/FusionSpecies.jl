@@ -43,6 +43,11 @@ function get_species_symbol(e_name::Symbol, z)
     return Symbol(string(e_name) * get_str_charge_state(z))
 end
 
+
+function get_species_symbol(s::Species)
+    return s.symbol
+end
+
 get_element(s::Union{AbstractSpecies,AbstractLoadedSpecies}) = return s.element
 
 
@@ -265,7 +270,7 @@ get_species_indexes(species::AbstractSpecies)::SpeciesIndexes = get_species_inde
 
 
 get_species_indexes(species_set::SpeciesSet, s::Int64)::SpeciesIndexes = get_species_indexes(species_set, get_species(species_set, s))
-get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes([])
+get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes()
 get_species_indexes(species_set::SpeciesSet)::SpeciesIndexes= get_species_indexes(species_set.list_species)
 get_species_indexes(species_set::SpeciesSet, s::Symbol)::SpeciesIndexes = get_species_indexes(get_species(species_set, s))
 get_species_index(t::Tuple{LoadedSpecies,LoadedSpecies}) = BinarySpeciesIndex(get_species_index(t[1]), get_species_index(t[2]))
@@ -275,9 +280,6 @@ function get_species_indexes(species_set::SpeciesSet, s::Union{Vector{<:Any},Vec
      length(get_species(species_set, s)) > 0 ? SpeciesIndexes([get_species_index(ss) for ss in get_species(species_set, s)]) : SpeciesIndexes()
 end
 
-function get_species_indexes(species_set::SpeciesSet, s::Vector{<:Tuple})::BinarySpeciesIndexes
-    length(get_species(species_set, s)) > 0 ? BinarySpeciesIndexes([get_species_index(ss) for ss in get_species(species_set, s)]) : BinarySpeciesIndexes()
-end
 @inline tuplejoin(x) = x
 @inline tuplejoin(x, y) = (x..., y...)
 @inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
@@ -347,6 +349,7 @@ end
 get_species(species_set::SpeciesSet, element::Element) = filter(x -> x.element == element, species_set.list_species)
 get_species(@nospecialize(species_set::SpeciesSet), @nospecialize(s::Vector))::Vector = vcat([get_species(species_set, sp) for sp in s]...)
 get_species(species_set::SpeciesSet, s::SpeciesIndexes)::Vector =  get_species(species_set, s.value)
+get_species(species_set::SpeciesSet, s::BinarySpeciesIndex)::Tuple = (get_species(species_set, s.s1), get_species(species_set, s.s2))
 
 get_species(species_set::SpeciesSet, elements::Vector{<:Element}) = filter(x -> x.element ∈ elements, species_set.list_species)
 get_species_except(species_set::SpeciesSet, species::LoadedSpecies) = filter(x -> x != species, species_set.list_species)
