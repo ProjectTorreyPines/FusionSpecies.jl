@@ -1,14 +1,10 @@
 module FusionSpecies
 
 import PeriodicTable
-using Logging
-using Crayons.Box
 using DocStringExtensions
 using Unitful
-using PrecompileTools
-using MacroTools
 using Adapt
-
+using OrderedCollections
 
 m_e = 9.1093837015e-31
 dic_expo = Dict{}()
@@ -32,7 +28,7 @@ include("types.jl")
 include("elements.jl")
 include("registry.jl")
 include("getter.jl")
-using OrderedCollections
+
 dummy_loaded_species = LoadedSpecies{DummyParticleType}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
 
 function convert_macro_kwargs(args)
@@ -205,23 +201,13 @@ end
 import_species()
 
 
-
-
-
 function setup_species!(species_set::SpeciesSet)
-    reorder_species_index(species_set)
-
     list_species = species_set.list_species
     @assert length(unique(list_species)) == length(list_species)
 
     list_idx = [v.index for v in species_set.list_species]
     @assert length(unique(list_idx)) == length(list_idx)
     species_set.lock[1] = true
-end
-
-function reorder_species_index(species_registry)
-    # list_species = [v for (k,v) in species_registry if typeof(v) <: AbstractLoadedSpecies]
-    # nspc = length(list_species)
 end
 
 
@@ -236,36 +222,25 @@ function check_species_index(species_set::SpeciesSet)
     @assert minimum(diff(indexes)) == maximum(diff(indexes)) == 1
 end
 
-function check_species_index(species_registry::LoadedSpeciesRegistry)
-    indexes = sort([v.index for v in values(species_registry) if typeof(v) <: AbstractLoadedSpecies])
-    @debug begin
-        "Indexes of active species: $indexes"
-    end
-    # check that indexes start at 1
-    @assert minimum(indexes) == 1
-    # check that indexes are incremental by 1
-    if length(indexes) > 1
-        @assert minimum(diff(indexes)) == maximum(diff(indexes)) == 1
-    end
-end
 
 
 Base.ones(sp::FusionSpecies.SpeciesParameters) = ones(get_nspecies(sp.species_set))
 
 function Base.show(io::IO, ::MIME"text/plain", species::LoadedSpecies)
-    print(io, MAGENTA_FG("$(string(species.symbol))"), " [$(stype(species))][", LIGHT_MAGENTA_FG("$(string(species.element.symbol))"), "] ", " - index: $(species.index)")
+    printstyled(io, "$(string(species.symbol))", " [$(stype(species))][", "$(string(species.element.symbol))", "] ", " - index: $(species.index)", color=species_color)
 end
-
+species_color = 25
+element_color = 10
 function Base.show(io::IO, species::LoadedSpecies)
-    print(io, MAGENTA_FG("$(string(species.symbol))"))
+    printstyled(io, "$(string(species.symbol))", color=species_color)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", element::AbstractElement)
-    print(io, BLUE_FG("$(string(element.symbol))"), BLUE_FG("Z = $(string(element.atomic_number))"))
+    printstyled(io, "$(string(element.symbol))", "Z = $(string(element.atomic_number))", color=element_color)
 end
 
 function Base.show(io::IO, element::AbstractElement)
-    print(io, BLUE_FG("$(string(element.symbol))"))
+    printstyled(io, "$(string(element.symbol))",color=element_color)
 end
 
 

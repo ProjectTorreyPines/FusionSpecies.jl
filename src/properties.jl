@@ -5,27 +5,32 @@ abstract type AbstractSpeciesProperties <: AbstractProperties end
 abstract type AbstractSpeciesProperty <: AbstractSpeciesProperties end
 abstract type AbstractSpeciesIndexes end
 abstract type AbstractSpeciesIndex<: AbstractSpeciesIndexes end
+
 const AbstractProperty = Union{AbstractSpeciesProperty,AbstractElementProperty}
+Base.:*(f::Number, m::T) where {T<:AbstractProperties} = T(f * m.value)
+Base.:<(x::Number, y::T) where {T<:AbstractProperty} = x < y.value
+Base.:<(x::T, y::Number) where {T<:AbstractProperty} = x.value < y
 
 struct SpeciesChargeState <: AbstractSpeciesProperty
     value::Float64
 end
 SpeciesChargeState(A::Int64) = SpeciesChargeState(Float64(A))
+
 struct SpeciesChargeStates <: AbstractSpeciesProperties
     value::Vector{Float64}
 end
 SpeciesChargeStates(v::Vector{<:SpeciesChargeState}) = SpeciesChargeStates([s.value for s in v])
+
 for o in (:+,:-,:*,:/,:^)
     eval(:(Base.$o(p::SpeciesChargeState, i) = $o(p.value, i)))
 end
+
 struct ElementMass <: AbstractElementProperty
     value::Float64
 end
 ElementMass(m::ElementMass) = m
 ElementMass(A::Int64) = ElementMass(Float64(A))
-Base.:*(f::Number, m::T) where {T<:AbstractProperties} = T(f * m.value)
-Base.:<(x::Number, y::T) where {T<:AbstractProperty} = x < y.value
-Base.:<(x::T, y::Number) where {T<:AbstractProperty} = x.value < y
+
 struct ElementAtomicNumber <: AbstractElementProperty
     value::Int64
 end
@@ -41,7 +46,6 @@ struct SpeciesAtomicNumber <: AbstractSpeciesProperty
 end
 SpeciesAtomicNumber(A::Int64) = SpeciesAtomicNumber(Float64(A))
 SpeciesAtomicNumber(m::ElementAtomicNumber) = SpeciesAtomicNumber(m.value)
-
 
 struct SpeciesMass <: AbstractSpeciesProperty
     value::Float64
@@ -71,8 +75,6 @@ struct BinarySpeciesIndex{T1 <: ParticleType,T2 <: ParticleType}
     s1::Int64
     s2::Int64
 end
-
-
 
 
 struct SpeciesIndexes{V<:Union{Vector{Int64},Vector{BinarySpeciesIndex}}} <: AbstractSpeciesIndexes

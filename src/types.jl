@@ -33,6 +33,7 @@ const MoleculeSpecies = AbstractSpecies{<:Molecules}
 
 const IonsAtoms = Union{Ions,Atoms}
 
+
 struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     charge_state::SpeciesChargeState
     name::String
@@ -104,9 +105,6 @@ struct SpeciesParameters
     idx_main_atom::MainAtomIndex
     species_set::SpeciesSet
 end
-
-
-
 
 sdoc(s::SpeciesParameters) = "nspc=$(length(s.Z))"
 
