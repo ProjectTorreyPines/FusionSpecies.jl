@@ -75,11 +75,9 @@ end
 
 
 
-@add_gpu_struct struct SpeciesIndexes{V<:Union{Vector{Int64},Vector{BinarySpeciesIndex}}} <: AbstractSpeciesIndexes
+struct SpeciesIndexes{V<:Union{Vector{Int64},Vector{BinarySpeciesIndex}}} <: AbstractSpeciesIndexes
     value::V
 end
-
-
 
 function SpeciesIndex(s::SpeciesIndexes)
     @assert length(s.value) == 1

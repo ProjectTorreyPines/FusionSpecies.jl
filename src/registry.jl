@@ -60,14 +60,14 @@ end
 check_status(species_set::SpeciesSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
 
 
-macro reset_species()
-    for k in keys(species_registry)
-        delete!(species_registry, k)
-    end
-    species_registry["locked"] = false
-end
+# macro reset_species()
+#     for k in keys(species_registry)
+#         delete!(species_registry, k)
+#     end
+#     species_registry["locked"] = false
+# end
 
-function get_species_registry(; lock=true)
-    check_status_species_registry(; lock=lock, message="run first @setup_model")
-    return species_registry
-end
+# function get_species_registry(; lock=true)
+#     check_status_species_registry(; lock=lock, message="run first @setup_model")
+#     return species_registry
+# end

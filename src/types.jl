@@ -30,12 +30,6 @@ const NeutralSpecies = AbstractSpecies{<:Neutrals}
 const AtomSpecies = AbstractSpecies{<:Atoms}
 const MoleculeSpecies = AbstractSpecies{<:Molecules}
 
-# const ImpurityMoleculeSpecies = AbstractSpecies{<:ImpurityMolecule}
-# const MainMoleculeSpecies = AbstractSpecies{<:MainMolecule}
-# const MainAtomSpecies = AbstractSpecies{<:MainAtom}
-# const ImpurityAtomSpecies = AbstractSpecies{<:ImpurityAtom}
-# const ImpurityIonSpecies = AbstractSpecies{<:ImpurityIon}
-# const MainIonSpecies = AbstractSpecies{<:MainIon}
 
 const IonsAtoms = Union{Ions,Atoms}
 
@@ -46,12 +40,6 @@ struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     element::AbstractElement
     mass::SpeciesMass
     atomic_number::SpeciesAtomicNumber
-end
-
-function Base.getproperty(s::AbstractSpecies, f::Symbol)
-    f == :Z && return getfield(s,:charge_state)
-    f == :m && return getfield(s, :mass)
-    return getfield(s,f)
 end
 
 BaseSpecies(e::AbstractElement, z::ElementAtomicNumber) = BaseSpecies(e, z.value)
@@ -74,7 +62,6 @@ end
 
 function LoadedSpecies(s::BaseSpecies, idx::Int64)
     T = get_species_particle_type(s)
-
     LoadedSpecies{T}(s.charge_state, s.name, s.symbol, s.element, s.mass, s.atomic_number, SpeciesIndex(idx), [false])
 end
 
@@ -98,23 +85,7 @@ function SpeciesSet(v::Vector{T}) where {T<:AbstractLoadedSpecies}
     SpeciesSet(v, dic_species, [true])
 end
 Base.getindex(s::SpeciesSet, i::Int64) = s.list_species[i]
-LoadedSpeciesSet() = SpeciesSet{LoadedSpecies}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
-
-function LoadedSpeciesSet(species_registry)
-    # check id species
-    check_species_index(species_registry)
-
-    # make dict with species indexes
-    dic_species = Dict{Int64,LoadedSpecies}()
-    for s in [v for v in values(species_registry) if typeof(v) <: AbstractLoadedSpecies]
-        dic_species[s.index] = s
-    end
-    list_species = [v for v in values(dic_species) if typeof(v) <: AbstractLoadedSpecies]
-    for s in values(dic_species)
-        list_species[s.index] = s
-    end
-    SpeciesSet(list_species, dic_species, [true])
-end
+SpeciesSet() = SpeciesSet{LoadedSpecies}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
 
 " species parameters in vector format "
 struct SpeciesParameters

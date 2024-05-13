@@ -27,13 +27,11 @@ dic_expo["-"] = "⁻"
 
 abstract type ParticleType end
 
-include("gpu_generator.jl")
 include("properties.jl")
 include("types.jl")
 include("elements.jl")
 include("registry.jl")
 include("getter.jl")
-include("iterators.jl")
 using OrderedCollections
 dummy_loaded_species = LoadedSpecies{DummyParticleType}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
 
@@ -161,7 +159,7 @@ end
 
 add_species(obj::Symbol, species_set::SpeciesSet) = add_species(getfield(@__MODULE__, obj), species_set)
 function get_species(obj::Symbol) 
-    species_set = LoadedSpeciesSet()
+    species_set = SpeciesSet()
      add_species(getfield(@__MODULE__, obj), species_set)
     return species_set
 end
@@ -325,7 +323,6 @@ function stringstyled(str::AbstractString; color::Union{Int,Symbol}=:normal,
     return enable_ansi * str * disable_ansi
 end
 
-include(get_generated_gpu_struct_filename())
 const Elements = Union{Element,Vector{<:Element}}
 export show_elements, get_element, add_species, show_species, create_species
 export @reset_species, @add_plasma_species
@@ -333,6 +330,6 @@ export import_species, is_set
 export base_species_registry, species_registry
 export get_species, get_species, get_species_set, get_electron_species, get_species_index, get_electron_index
 export name_, check_status_species_registry, species_registry, get_nspecies, get_species_Z, get_species_reduced_masses, get_species_masses, get_electron_index, get_species_abstract_type
-export AbstractSpecies, BaseSpecies, SpeciesSet, LoadedSpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
+export AbstractSpecies, BaseSpecies, SpeciesSet, AbstractLoadedSpecies, Species, Elements, AbstractElement, LoadedSpecies, SpeciesParameters
 export ElectronSpecies, IonSpecies
 end
