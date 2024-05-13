@@ -1,18 +1,18 @@
-abstract type Particles end
-abstract type AbstractSpecies{T<:Particles} end
 
-abstract type AbstractLoadedSpecies{T<:Particles} <: AbstractSpecies{T} end
+abstract type AbstractSpecies{T<:ParticleType} end
+
+abstract type AbstractLoadedSpecies{T<:ParticleType} <: AbstractSpecies{T} end
 abstract type AbstractBaseSpecies{T} <: AbstractSpecies{T} end
 
 
-abstract type DummyParticles <: Particles end
+abstract type DummyParticleType <: ParticleType end
 abstract type AbstractElement end
 
 
-abstract type ChargedParticles <: Particles end
-abstract type Electron <: ChargedParticles end
-abstract type Ions <: ChargedParticles end
-abstract type Neutrals <: Particles end
+abstract type ChargedParticleType <: ParticleType end
+abstract type Electron <: ChargedParticleType end
+abstract type Ions <: ChargedParticleType end
+abstract type Neutrals <: ParticleType end
 abstract type Atoms <: Neutrals end
 abstract type Molecules <: Neutrals end
 
@@ -23,7 +23,7 @@ abstract type ImpurityAtom <: Atoms end
 abstract type ImpurityIon <: Ions end
 abstract type MainIon <: Ions end
 
-const ChargedParticleSpecies = AbstractSpecies{<:ChargedParticles}
+const ChargedParticleSpecies = AbstractSpecies{<:ChargedParticleType}
 const ElectronSpecies = AbstractSpecies{<:Electron}
 const IonSpecies = AbstractSpecies{<:Ions}
 const NeutralSpecies = AbstractSpecies{<:Neutrals}
@@ -61,7 +61,7 @@ function BaseSpecies(e::AbstractElement, z::Int64)
     BaseSpecies{T}(SpeciesChargeState(z), e.name, s, e, SpeciesMass(e.mass), SpeciesAtomicNumber(e.atomic_number))
 end
 
-struct LoadedSpecies{T<:Particles} <: AbstractLoadedSpecies{T}
+struct LoadedSpecies{T<:ParticleType} <: AbstractLoadedSpecies{T}
     charge_state::SpeciesChargeState
     name::String
     symbol::Symbol

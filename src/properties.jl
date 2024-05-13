@@ -67,11 +67,11 @@ struct SpeciesIndex <: AbstractSpeciesIndex
 end
 SpeciesIndex(i::SpeciesIndex) = SpeciesIndex(i.value)
 
-struct BinarySpeciesIndex
+struct BinarySpeciesIndex{T1 <: ParticleType,T2 <: ParticleType}
     s1::Int64
     s2::Int64
 end
-BinarySpeciesIndex(s1::SpeciesIndex, s2::SpeciesIndex) = BinarySpeciesIndex(s1.value, s2.value)
+
 
 
 

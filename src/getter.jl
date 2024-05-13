@@ -1,6 +1,6 @@
 get_type_species(z::Int64) = get_type_species(float(z))
 
-function get_species_particle_type(s::BaseSpecies)::Type{<:Particles}
+function get_species_particle_type(s::BaseSpecies)::Type{<:ParticleType}
     if s.symbol == :D¹⁺
         T = MainIon
     elseif s.symbol == :D⁰
@@ -160,7 +160,7 @@ end
 
 (Vector{<:LoadedSpecies})(::Vector{Any}) = (Vector{LoadedSpecies})()
 
-get_species(species_set::SpeciesSet{T}, type_species::Type{<:Particles}) where {T} = Vector{T}([s for s in species_set.list_species if type(s) <: type_species])
+get_species(species_set::SpeciesSet{T}, type_species::Type{<:ParticleType}) where {T} = Vector{T}([s for s in species_set.list_species if type(s) <: type_species])
 "$TYPEDSIGNATURES get a list of active species"
 get_species(species_set::SpeciesSet{T}) where {T} = species_set.list_species::Vector{T}
 
@@ -273,7 +273,7 @@ get_species_indexes(species_set::SpeciesSet, s::Int64)::SpeciesIndexes = get_spe
 get_species_indexes(species_set::SpeciesSet, s::Missing)::SpeciesIndexes = SpeciesIndexes()
 get_species_indexes(species_set::SpeciesSet)::SpeciesIndexes= get_species_indexes(species_set.list_species)
 get_species_indexes(species_set::SpeciesSet, s::Symbol)::SpeciesIndexes = get_species_indexes(get_species(species_set, s))
-get_species_index(t::Tuple{LoadedSpecies,LoadedSpecies}) = BinarySpeciesIndex(get_species_index(t[1]), get_species_index(t[2]))
+get_species_index(t::Tuple{LoadedSpecies{T1},LoadedSpecies{T2}}) where {T1,T2} = BinarySpeciesIndex{T1,T2}(get_species_index(t[1]).value, get_species_index(t[2]).value)
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpecies) = get_species_indexes(species_set, [s])
 get_species_indexes(species_set::SpeciesSet, s::AbstractSpeciesIndexes) = get_species_indexes(species_set, s.value)
 function get_species_indexes(species_set::SpeciesSet, s::Union{Vector{<:Any},Vector{<:AbstractSpecies},Vector{Symbol},Vector{Int64}})::SpeciesIndexes 

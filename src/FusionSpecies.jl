@@ -24,6 +24,9 @@ dic_expo[9] = "⁹"
 dic_expo[0] = "⁰"
 dic_expo["+"] = "⁺"
 dic_expo["-"] = "⁻"
+
+abstract type ParticleType end
+
 include("gpu_generator.jl")
 include("properties.jl")
 include("types.jl")
@@ -32,7 +35,8 @@ include("registry.jl")
 include("getter.jl")
 include("iterators.jl")
 using OrderedCollections
-dummy_loaded_species = LoadedSpecies{DummyParticles}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
+dummy_loaded_species = LoadedSpecies{DummyParticleType}(SpeciesChargeState(0.0), "dummy", :dummy, dummy_element, SpeciesMass(0.0), SpeciesAtomicNumber(0), SpeciesIndex(0), [false])
+
 function convert_macro_kwargs(args)
     aargs = []
     aakws = Pair{Any,Any}[]
