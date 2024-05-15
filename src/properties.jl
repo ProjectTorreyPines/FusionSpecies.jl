@@ -1,3 +1,4 @@
+
 abstract type AbstractProperties  end
 abstract type AbstractElementProperties <: AbstractProperties end
 abstract type AbstractElementProperty <: AbstractElementProperties end
@@ -10,6 +11,10 @@ const AbstractProperty = Union{AbstractSpeciesProperty,AbstractElementProperty}
 Base.:*(f::Number, m::T) where {T<:AbstractProperties} = T(f * m.value)
 Base.:<(x::Number, y::T) where {T<:AbstractProperty} = x < y.value
 Base.:<(x::T, y::Number) where {T<:AbstractProperty} = x.value < y
+
+struct SpeciesIonizationEnergy{F<:Union{Missing,Float64}} <: AbstractSpeciesProperty
+    value::F
+end
 
 struct SpeciesChargeState <: AbstractSpeciesProperty
     value::Float64
@@ -91,13 +96,17 @@ SpeciesIndexes() = SpeciesIndexes(Vector{Int64}())
 SpeciesIndexes(s::SpeciesIndex) = SpeciesIndexes([s.value])
 SpeciesIndexes(v::Vector{SpeciesIndex}) = SpeciesIndexes([s.value for s in v])
 Base.iterate(s::SpeciesIndexes, args...) = iterate(s.value, args...)
+
+
 struct ElectronIndex <: AbstractSpeciesIndex
     value::Int64
 end
 ElectronIndex(i::SpeciesIndex) = ElectronIndex(i.value)
+
 struct MainIonIndex <: AbstractSpeciesIndex
     value::Int64
 end
+
 function MainIonIndex(v::Vector) 
     @assert length(v) == 1 
     MainIonIndex(v[1])
@@ -113,7 +122,7 @@ end
 
 MainAtomIndex(v::SpeciesIndex) = MainAtomIndex(v.value)
 
-export is_missing, SpeciesMasses, SpeciesChargeState, SpeciesChargeStates, SpeciesIndexes, SpeciesIndex, ElectronIndex, MainAtomIndex, MainIonIndex
+export SpeciesMasses, SpeciesChargeState, SpeciesChargeStates, SpeciesIndexes, SpeciesIndex, ElectronIndex, MainAtomIndex, MainIonIndex
 
 Base.getindex(t::Union{AbstractSpeciesProperties,SpeciesIndexes}, args...) = getindex(t.value, args...)
 Base.copy(t::T) where {T<:Union{AbstractSpeciesProperties,AbstractSpeciesIndexes}} = T(copy(t.value))
@@ -126,4 +135,4 @@ Base.unique!(t::T, args...) where {T<:Union{AbstractSpeciesProperties,SpeciesInd
 Base.sort!(t::T, args...) where {T<:Union{AbstractSpeciesProperties,SpeciesIndexes}} = sort!(t.value, args...)
 Base.append!(s1::SpeciesIndexes, s2::SpeciesIndexes) = append!(s1.value, s2.value)
 Base.to_index(i::AbstractSpeciesIndexes) = Base.to_index(i.value)
-is_missing(s::AbstractSpeciesIndex) = s.value ==0
+Base.ismissing(s::AbstractSpeciesIndex) = s.value ==0

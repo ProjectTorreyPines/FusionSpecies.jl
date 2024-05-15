@@ -1,3 +1,5 @@
 docs/.DS_Store
 src/generated_code/*
 .DS_Store
+.vscode
+

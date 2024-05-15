@@ -246,7 +246,7 @@ function get_electron_index(species_set::SpeciesSet; enforce=false)::ElectronInd
         idx = ElectronIndex(0)
     end
     if enforce isa String || enforce
-        @assert !is_missing(idx) (enforce isa String ? enforce : "cannot find electron among loaded species")
+        @assert !ismissing(idx) (enforce isa String ? enforce : "cannot find electron among loaded species")
     end
     return idx
 end
@@ -293,49 +293,18 @@ iterate_species(species_set::SpeciesSet, species::Vector) = Base.IteratorsMD.fla
 
 
 
-Base.length(s::SpeciesSet) = length(s.list_species)
 
-Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
-# " $(TYPEDSIGNATURES) return the species that are of type `element`"
-# function get_species(symbol::Symbol; lock=true)
-#     @assert "species_set" ∈ keys(species_registry)
-#     check_status_species_registry(lock=lock)
-#     species =  filter(x->Symbol(x.symbol) == symbol  ,species_registry["species_set"].list_species)
-#     @assert length(species) <2 
-#     if length(species) == 1
-#         return species[1]
-#     elseif length(species) == 0
-#         return nothing
-#     end
-
-# end
-# " 
-# return the species that are of type `element`
-# $(TYPEDSIGNATURES) 
-# $(METHODLIST)
-# "
-# function get_species(v :: Vector{Any}) :: Vector{AbstractLoadedSpecies}
-#     out = Vector{AbstractLoadedSpecies}()
-#     for s in v 
-#          s_ = get_species(s)
-#          if s_ isa Array
-#             append!(out, s_)
-#          else
-#             push!(out,s_)
-#          end
-#     end
-#     return out 
-# end
 
 " $(TYPEDSIGNATURES) return the species that are of type `element`"
-function get_species(species_set::SpeciesSet, s::Symbol; lock=true)
-    check_status(species_set, lock=lock)
+function get_species(species_set::SpeciesSet, s::Symbol)
     if s in keys(species_category)
         return species_category[s](species_set)
+    elseif s ∈ [ss.element.symbol for ss in species_set.list_species]
+        return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
+    elseif s ∈ [ss.symbol for ss in species_set.list_species]
+        return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
     else
-        @assert s ∈ [ss.symbol for ss in species_set.list_species] "species $s not loaded. Available species $(name_(species_set))"
-        species = filter(x -> Symbol(x.symbol) == s, species_set.list_species)[1]
-        return species
+        error("species $s not loaded.... \n  Available species: $(species_set.list_species) \n Available elements: $(get_elements(species_set))")
     end
 end
 

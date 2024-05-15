@@ -2,5 +2,8 @@ using FusionSpecies
 using Test
 
 @testset "FusionSpecies.jl" begin
-    # Write your tests here.
+    ss = @species_set D C e⁻
+    FusionSpecies.set_main_species!(ss, D)
+    FusionSpecies.import_species!(ss, @__MODULE__)
+    true
 end
