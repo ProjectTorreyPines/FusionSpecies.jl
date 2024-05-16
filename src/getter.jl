@@ -302,7 +302,7 @@ function get_species(species_set::SpeciesSet, s::Symbol)
     elseif s ∈ [ss.element.symbol for ss in species_set.list_species]
         return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
     elseif s ∈ [ss.symbol for ss in species_set.list_species]
-        return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
+        return filter(x -> Symbol(x.symbol) == s, species_set.list_species)
     else
         error("species $s not loaded.... \n  Available species: $(species_set.list_species) \n Available elements: $(get_elements(species_set))")
     end
