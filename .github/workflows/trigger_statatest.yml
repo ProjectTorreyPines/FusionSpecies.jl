@@ -11,8 +11,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const fetch = require('node-fetch');
-
             const token = process.env.PERSONAL_ACCESS_TOKEN;
             const owner = 'jguterl';
             const repo = 'StataTests.jl';
