@@ -112,6 +112,7 @@ function MainIonIndex(v::Vector)
     MainIonIndex(v[1])
 end
 MainIonIndex(v::SpeciesIndex) = MainIonIndex(v.value)
+
 struct MainAtomIndex <: AbstractSpeciesIndex
     value::Int64
 end

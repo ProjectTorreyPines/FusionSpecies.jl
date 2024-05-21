@@ -73,15 +73,11 @@ end
     esc(blk)
 end
 
-@create_elements H He Be C Si W Ne Ar Xe
+@create_elements H He Be C Si W Ne Ar Xe Kr N Al
 @create_element ∅ mass = 0 name = dummy atomic_number = 0 density = 0.0
 @create_element D mass = 2 * H.mass name = deuterium atomic_number = 1 density = 0.0 isotope=H
 @create_element T mass = 3 * H.mass name = tritium atomic_number = 1 density = 0.0 isotope=H
-@create_element ℯ mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
+@create_element _e⁻ mass = m_e name = electron atomic_number = -1 type = Electron density = 0.0
 @create_species
-
-e⁻ = ℯ⁻
-species_registry[:e⁻] = e⁻
-
-
-# import_species()
+e⁻ = BaseSpecies{Electron}(SpeciesChargeState(-1), "electron", :e⁻, :_e⁻, SpeciesMass(m_e), SpeciesAtomicNumber(-1), :_e⁻)
+add2registry(e⁻)

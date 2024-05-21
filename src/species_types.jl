@@ -38,8 +38,15 @@ struct Element{T<:ParticleType} <: AbstractElement
     atomic_number::ElementAtomicNumber
     mass::ElementMass
     density::ElementDensity
-    species :: Vector{<:AbstractBaseSpecies}
+    species :: Vector{AbstractSpecies}
     isotope::Symbol
+end
+
+function (e::Element)(q::Int64)  
+    for s in e.species
+        s.charge_state.value == q && return s
+    end
+    return missing
 end
 
 const Elements = Union{Element,Vector{<:Element}}
@@ -51,7 +58,9 @@ Element{T}(n, s, a, m, d, isotope) where {T<:Atoms} = Element{T}(n, s, a, m, d, 
 Element{T}(n, s, a, m, d, isotope) where {T<:Electron} = Element{T}(n, s, a, m, d, [BaseSpecies(a.value, n, s, m, a, isotope)], isotope)
 
 
-
+charge_states(el::Element)::Int64 = el.atomic_number.value
+atomic_number(el::Element)::Int64 = el.atomic_number.value
+export charge_states, atomic_number
 
 function Base.show(io::IO, ::MIME"text/plain", element::AbstractElement)
     printstyled(io, "$(string(element.symbol))", color=element_color)
@@ -74,7 +83,7 @@ struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     isotope::Symbol
 end
 
-
+BaseSpecies(s::AbstractLoadedSpecies{T}) where T = BaseSpecies{T}(s.charge_state,s.name,s.symbol,s.element.symbol,s.mass,s.atomic_number,s.isotope.symbol)
 
 function BaseSpecies(z, el_name, el_symbol, el_mass::ElementMass, el_atomic_number::ElementAtomicNumber, isotope)
     T = get_type_species(z)

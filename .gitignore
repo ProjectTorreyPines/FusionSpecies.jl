@@ -3,3 +3,4 @@ src/generated_code/*
 .DS_Store
 .vscode
 
+Manifest.toml
