@@ -178,6 +178,7 @@ SpeciesReducedMasses(species_set::SpeciesSet; kw...) = get_species_reduced_masse
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 
 get_species_charge_states(s::AbstractSpecies)::SpeciesChargeStates = SpeciesChargeStates(s.charge_state)
+get_species_charge_state(s::AbstractLoadedSpecies)::SpeciesChargeState = s.charge_state
 SpeciesChargeStates(species_set::SpeciesSet; kw...) = get_species_charge_states(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 get_species_charge_states(species_set::SpeciesSet)::SpeciesChargeStates = SpeciesChargeStates([s.charge_state for s in species_set.list_species])

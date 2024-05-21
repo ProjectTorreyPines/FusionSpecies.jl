@@ -19,8 +19,8 @@ Base.getindex(s::SpeciesSet, i::Int64) = s.list_species[i]
 Base.length(s::SpeciesSet) = length(s.list_species)
 Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
 
-SpeciesSet() = SpeciesSet{LoadedSpecies}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
-
+SpeciesSet() = SpeciesSet{LoadedSpecies}()
+SpeciesSet{T}() where T = SpeciesSet{T}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
 check_status(species_set::SpeciesSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
 
 
