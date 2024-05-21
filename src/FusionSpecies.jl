@@ -33,6 +33,9 @@ end
 
 
 
+function Base.show(io::IO, species::Vector{<:LoadedSpecies})
+    print(io, "[$(species...)]")
+end
 
 
 function Base.show(io::IO, ::MIME"text/plain", species::LoadedSpecies)

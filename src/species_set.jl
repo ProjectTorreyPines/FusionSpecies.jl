@@ -34,13 +34,15 @@ add_species(obj::LoadedSpecies, species_set::SpeciesSet) = add_species(BaseSpeci
 
 
 function add_species(obj::Symbol, species_set::SpeciesSet) 
-    @assert obj ∈ keys(element_registry) ||  obj ∈ keys(species_registry) " cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))"
-    add_species(getfield(@__MODULE__, obj), species_set)
+    obj ∈ keys(element_registry) && return add_species(element_registry[obj],species_set)
+    obj ∈ keys(species_registry) && return add_species(species_registry[obj],species_set)
+    error(" cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))")
 end
 
 function _get_species(obj::Symbol)
-    @assert obj ∈ keys(element_registry) || obj ∈ keys(species_registry) " cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))"
-    getfield(@__MODULE__, obj)
+    obj ∈ keys(element_registry) && return element_registry[obj]
+    obj ∈ keys(species_registry) && return species_registry[obj]
+    error(" cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))")
 end
 
 

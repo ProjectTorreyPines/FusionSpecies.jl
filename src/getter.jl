@@ -340,7 +340,6 @@ function get_species(species_set::SpeciesSet, s::Vector{T}) where {T<:Union{Abst
     end
     return out
 end
-# get_species(s::LoadedSpecies) = [s]
 get_species_name(s) = name_.(get_species(s))
 get_species_name(s, idx) = name_.(get_species(s, idx))
 get_electron_species(species_set::SpeciesSet) = get_electron(species_set)
