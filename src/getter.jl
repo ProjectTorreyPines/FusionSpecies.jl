@@ -48,6 +48,9 @@ function get_species_symbol(s::Species)
     return s.symbol
 end
 
+get_species_symbol(s::Vector) = mapreduce(s->get_species_symbol(s),vcat,s)
+
+get_species_symbol(s::Element) = s.symbol
 get_element(s::Union{AbstractSpecies,AbstractLoadedSpecies}) = return s.element
 
 
