@@ -19,8 +19,8 @@ Base.getindex(s::SpeciesSet, i::Int64) = s.list_species[i]
 Base.length(s::SpeciesSet) = length(s.list_species)
 Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
 
-SpeciesSet() = SpeciesSet{LoadedSpecies}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
-
+SpeciesSet() = SpeciesSet{LoadedSpecies}()
+SpeciesSet{T}() where T = SpeciesSet{T}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
 check_status(species_set::SpeciesSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
 
 
@@ -30,17 +30,43 @@ function add_species(obj::BaseSpecies, species_set::SpeciesSet)
     @assert tmp ∉ species_set.list_species "Species $obj already added.... \n List of current species in species set: $(species_set.list_species)"
     push!(species_set.list_species, tmp)
 end
+add_species(obj::LoadedSpecies, species_set::SpeciesSet) = add_species(BaseSpecies(obj), species_set)
+
 
 function add_species(obj::Symbol, species_set::SpeciesSet) 
-    @assert obj ∈ keys(element_registry) ||  obj ∈ keys(species_registry) " cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))"
-    add_species(getfield(@__MODULE__, obj), species_set)
+    obj ∈ keys(element_registry) && return add_species(element_registry[obj],species_set)
+    obj ∈ keys(species_registry) && return add_species(species_registry[obj],species_set)
+    error(" cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))")
 end
+
+function _get_species(obj::Symbol)
+    obj ∈ keys(element_registry) && return element_registry[obj]
+    obj ∈ keys(species_registry) && return species_registry[obj]
+    error(" cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))")
+end
+
+
 
 function get_species(obj::Symbol)
     species_set = SpeciesSet()
-    add_species(getfield(@__MODULE__, obj), species_set)
+    add_species(obj, species_set)
     setup_species!(species_set)
     return species_set
+end
+
+
+
+macro _add_species(obj)
+    species_set = FusionSpecies.get_species(obj)
+    expr = Expr(:block)
+    for s in species_set.list_species
+        push!(expr.args,:($(s.symbol)=FusionSpecies.get_species($(QuoteNode(s.symbol)))))
+    end
+    for el in get_elements(species_set)
+        push!(expr.args, :($(el.symbol) = FusionSpecies.get_element($(QuoteNode(el.symbol)))))
+    end
+    println(expr)
+    expr
 end
 
 function get_species(objs::Vector{Symbol})
@@ -75,6 +101,17 @@ function setup_species!(species_set::SpeciesSet)
 
     list_idx = [v.index for v in species_set.list_species]
     @assert length(unique(list_idx)) == length(list_idx)
+    els = [s.element for s in species_set.list_species]
+    # update species stored in elements
+    for el in els
+        empty!(el.species)
+        for  s in species_set.list_species
+            if s.element.symbol == el.symbol
+                push!(el.species,s)
+            end
+        end
+    end
+    
     species_set.lock[1] = true
 end
 

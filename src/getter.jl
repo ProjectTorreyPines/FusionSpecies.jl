@@ -48,6 +48,9 @@ function get_species_symbol(s::Species)
     return s.symbol
 end
 
+get_species_symbol(s::Vector) = mapreduce(s->get_species_symbol(s),vcat,s)
+
+get_species_symbol(s::Element) = s.symbol
 get_element(s::Union{AbstractSpecies,AbstractLoadedSpecies}) = return s.element
 
 
@@ -178,6 +181,7 @@ SpeciesReducedMasses(species_set::SpeciesSet; kw...) = get_species_reduced_masse
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 
 get_species_charge_states(s::AbstractSpecies)::SpeciesChargeStates = SpeciesChargeStates(s.charge_state)
+get_species_charge_state(s::AbstractLoadedSpecies)::SpeciesChargeState = s.charge_state
 SpeciesChargeStates(species_set::SpeciesSet; kw...) = get_species_charge_states(species_set)
 "$TYPEDSIGNATURES get a list of the charge state of active species"
 get_species_charge_states(species_set::SpeciesSet)::SpeciesChargeStates = SpeciesChargeStates([s.charge_state for s in species_set.list_species])
@@ -302,7 +306,7 @@ function get_species(species_set::SpeciesSet, s::Symbol)
     elseif s ∈ [ss.element.symbol for ss in species_set.list_species]
         return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
     elseif s ∈ [ss.symbol for ss in species_set.list_species]
-        return filter(x -> Symbol(x.element.symbol) == s, species_set.list_species)
+        return filter(x -> Symbol(x.symbol) == s, species_set.list_species)
     else
         error("species $s not loaded.... \n  Available species: $(species_set.list_species) \n Available elements: $(get_elements(species_set))")
     end
@@ -339,7 +343,6 @@ function get_species(species_set::SpeciesSet, s::Vector{T}) where {T<:Union{Abst
     end
     return out
 end
-# get_species(s::LoadedSpecies) = [s]
 get_species_name(s) = name_.(get_species(s))
 get_species_name(s, idx) = name_.(get_species(s, idx))
 get_electron_species(species_set::SpeciesSet) = get_electron(species_set)

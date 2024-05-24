@@ -1,0 +1,39 @@
+name: Trigger Other Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger workflow in another repository
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const token = process.env.PERSONAL_ACCESS_TOKEN;
+            const owner = 'jguterl';
+            const repo = 'StataTests.jl';
+            const workflow_id = 'CI.yml';  // The name of the workflow file to trigger
+            const ref = 'master';  // The branch to use
+
+            const url = `https://api.github.com/repos/ProjectTorreyPines/StataTests.jl/.github/workflows/${workflow_id}/dispatches`;
+
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                Authorization: `token ${token}`,
+                Accept: 'application/vnd.github.v3+json',
+              },
+              body: JSON.stringify({
+                ref: ref
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to trigger workflow: ${response.statusText}`);
+            } else {
+              console.log('Workflow triggered successfully!');
+            }
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
