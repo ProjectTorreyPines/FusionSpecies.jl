@@ -96,6 +96,7 @@ SpeciesIndexes() = SpeciesIndexes(Vector{Int64}())
 SpeciesIndexes(s::SpeciesIndex) = SpeciesIndexes([s.value])
 SpeciesIndexes(v::Vector{SpeciesIndex}) = SpeciesIndexes([s.value for s in v])
 Base.iterate(s::SpeciesIndexes, args...) = iterate(s.value, args...)
+Base.firstindex(s::SpeciesIndexes, args...) = firstindex(s.value, args...)
 
 
 struct ElectronIndex <: AbstractSpeciesIndex
