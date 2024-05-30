@@ -44,7 +44,7 @@ function get_species_symbol(e_name::Symbol, z)
 end
 
 
-function get_species_symbol(s::Species)
+function get_species_symbol(s::AbstractSpecies)
     return s.symbol
 end
 

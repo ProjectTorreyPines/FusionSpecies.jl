@@ -49,6 +49,9 @@ function (e::Element)(q::Int64)
     return missing
 end
 
+(e::Element)(q::UnitRange) = [s for q_ in q for s in e.species if s.charge_state.value == q_]
+
+
 const Elements = Union{Element,Vector{<:Element}}
 
 

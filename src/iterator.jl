@@ -30,6 +30,7 @@ SpeciesIterator(species_set::SpeciesSet) = SpeciesIterator(SpeciesIndexes(specie
 SpeciesIterator(species_set::SpeciesSet, s::SpeciesIndexes) = SpeciesIterator(s, species_set)
 
 intersect_species_index(a::SpeciesSet, b) = intersect_species_index(FusionSpecies.get_species_index(a), b)
+intersect_species_index(a::Vector{<:LoadedSpecies}, b) = intersect_species_index(FusionSpecies.get_species_indexes(a), b)
 intersect_species_index(a::SpeciesIndexes, b::SpeciesIterator) = intersect_species_index(a, b.s)
 intersect_species_index(a::SpeciesIterator, b::SpeciesIterator) = intersect_species_index(a.s, b.s)
 intersect_species_index(a::SpeciesIndexes, b::SpeciesIndexes) = intersect(a.value, b.value)
