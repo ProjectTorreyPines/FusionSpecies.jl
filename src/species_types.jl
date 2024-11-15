@@ -38,11 +38,22 @@ struct Element{T<:ParticleType} <: AbstractElement
     atomic_number::ElementAtomicNumber
     mass::ElementMass
     density::ElementDensity
-    species :: Vector{AbstractSpecies}
+    species::Vector{AbstractSpecies}
+    isotope::Symbol
+end
+abstract type AbstractMaterialElement <: AbstractElement end
+struct MaterialElement <: AbstractMaterialElement
+    name::String
+    symbol::Symbol
+    atomic_number::ElementAtomicNumber
+    mass::ElementMass
+    density::ElementDensity
     isotope::Symbol
 end
 
-function (e::Element)(q::Int64)  
+
+
+function (e::Element)(q::Int64)
     for s in e.species
         s.charge_state.value == q && return s
     end
@@ -73,7 +84,7 @@ end
 function Base.show(io::IO, element::AbstractElement)
     printstyled(io, "$(string(element.symbol))", color=element_color)
 end
-inline_summary(el::Element) = stringstyled("$(el.symbol)", color=element_color) * " : " * el.name 
+inline_summary(el::Element) = stringstyled("$(el.symbol)", color=element_color) * " : " * el.name
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------- #
 struct BaseSpecies{T} <: AbstractBaseSpecies{T}
@@ -86,7 +97,7 @@ struct BaseSpecies{T} <: AbstractBaseSpecies{T}
     isotope::Symbol
 end
 
-BaseSpecies(s::AbstractLoadedSpecies{T}) where T = BaseSpecies{T}(s.charge_state,s.name,s.symbol,s.element.symbol,s.mass,s.atomic_number,s.isotope.symbol)
+BaseSpecies(s::AbstractLoadedSpecies{T}) where {T} = BaseSpecies{T}(s.charge_state, s.name, s.symbol, s.element.symbol, s.mass, s.atomic_number, s.isotope.symbol)
 
 function BaseSpecies(z, el_name, el_symbol, el_mass::ElementMass, el_atomic_number::ElementAtomicNumber, isotope)
     T = get_type_species(z)
@@ -112,13 +123,13 @@ end
 function LoadedSpecies(s::BaseSpecies, idx::Int64)
     T = get_species_particle_type(s)
     isotope = get_element(s.isotope)
-    LoadedSpecies{T}(s.charge_state, s.name, s.symbol, get_element(s.element_symbol), s.mass, get_ionization_energy(get_element(s.element_symbol), s.charge_state, isotope), s.atomic_number, SpeciesIndex(idx),  isotope, MutableBool(false), MutableBool(false))
+    LoadedSpecies{T}(s.charge_state, s.name, s.symbol, get_element(s.element_symbol), s.mass, get_ionization_energy(get_element(s.element_symbol), s.charge_state, isotope), s.atomic_number, SpeciesIndex(idx), isotope, MutableBool(false), MutableBool(false))
 end
 type(::AbstractLoadedSpecies{T}) where {T} = T
 stype(s::LoadedSpecies) = split(string(type(s)), ".")[end]
 
 function get_ionization_energy(element::Element, z::SpeciesChargeState, isotope::Element)
-    Z = floor(Int64,z.value) +1
+    Z = floor(Int64, z.value) + 1
     Z > element.atomic_number.value && return SpeciesIonizationEnergy(0.0)
     element.symbol ∈ keys(Mendeleev.elements.bysymbol) && return SpeciesIonizationEnergy(Mendeleev.elements[element.symbol].ionenergy[Z].val)
     isotope.symbol ∈ keys(Mendeleev.elements.bysymbol) && return SpeciesIonizationEnergy(Mendeleev.elements[isotope.symbol].ionenergy[Z].val)

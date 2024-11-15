@@ -56,6 +56,11 @@ get_element(s::Union{AbstractSpecies,AbstractLoadedSpecies}) = return s.element
 
 get_element(s::AbstractElement) = return s
 
+function get_element(e::String)
+    @assert lowercase(e) ∈ lowercase.(getproperty.(values(element_registry),:name)) "Cannot find element $e in element_registry:$(keys(element_registry))"
+    return filter(v->lowercase(e) == lowercase(getproperty(v, :name)), collect(values(element_registry)))[1]
+end
+
 
 function get_element(e::Symbol)
     @assert e ∈ keys(element_registry) "Cannot find element $e in element_registry:$(keys(element_registry))"

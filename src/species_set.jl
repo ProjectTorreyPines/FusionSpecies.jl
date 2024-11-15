@@ -1,5 +1,15 @@
+abstract type AbstractSet end
 
-struct SpeciesSet{T<:AbstractLoadedSpecies}
+struct MaterialElementSet{T<:AbstractMaterialElement} <: AbstractSet
+    list_species::Vector{T}
+    dic_species::Dict{Int64,T}
+    lock::Vector{Bool}
+end
+MaterialElementSet() = SpeciesSet{MaterialElement}()
+MaterialElementSet{T}() where {T} = MaterialElementSet{T}(Vector{MaterialElement}(), Dict{Int64,MaterialElement}(), [false])
+MaterialElementSet(args...) = MaterialElementSet(args)
+MaterialElementSet(objs::Vector{Symbol}) = get_wall_elements(objs)
+struct SpeciesSet{T<:AbstractLoadedSpecies} <: AbstractSet
     list_species::Vector{T}
     dic_species::Dict{Int64,T}
     lock::Vector{Bool}
@@ -15,13 +25,13 @@ function SpeciesSet(v::Vector{T}) where {T<:AbstractLoadedSpecies}
     end
     SpeciesSet(v, dic_species, [true])
 end
-Base.getindex(s::SpeciesSet, i::Int64) = s.list_species[i]
-Base.length(s::SpeciesSet) = length(s.list_species)
-Base.iterate(s::SpeciesSet, args...) = iterate(s.list_species, args...)
+Base.getindex(s::AbstractSet, i::Int64) = s.list_species[i]
+Base.length(s::AbstractSet) = length(s.list_species)
+Base.iterate(s::AbstractSet, args...) = iterate(s.list_species, args...)
 
 SpeciesSet() = SpeciesSet{LoadedSpecies}()
-SpeciesSet{T}() where T = SpeciesSet{T}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
-check_status(species_set::SpeciesSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
+SpeciesSet{T}() where {T} = SpeciesSet{T}(Vector{LoadedSpecies}(), Dict{Int64,LoadedSpecies}(), [false])
+check_status(species_set::AbstractSet; lock=false, message="") = @assert species_set.lock[1] == lock message * " | species_registry : $(species_set.lock[1])"
 
 
 function add_species(obj::BaseSpecies, species_set::SpeciesSet)
@@ -33,9 +43,9 @@ end
 add_species(obj::LoadedSpecies, species_set::SpeciesSet) = add_species(BaseSpecies(obj), species_set)
 
 
-function add_species(obj::Symbol, species_set::SpeciesSet) 
-    obj ∈ keys(element_registry) && return add_species(element_registry[obj],species_set)
-    obj ∈ keys(species_registry) && return add_species(species_registry[obj],species_set)
+function add_species(obj::Symbol, species_set::SpeciesSet)
+    obj ∈ keys(element_registry) && return add_species(element_registry[obj], species_set)
+    obj ∈ keys(species_registry) && return add_species(species_registry[obj], species_set)
     error(" cannot find the species/element: $obj ...\n Available elements : $(keys(element_registry)) \n Available species: $(keys(species_registry))")
 end
 
@@ -60,7 +70,7 @@ macro _add_species(obj)
     species_set = FusionSpecies.get_species(obj)
     expr = Expr(:block)
     for s in species_set.list_species
-        push!(expr.args,:($(s.symbol)=FusionSpecies.get_species($(QuoteNode(s.symbol)))))
+        push!(expr.args, :($(s.symbol) = FusionSpecies.get_species($(QuoteNode(s.symbol)))))
     end
     for el in get_elements(species_set)
         push!(expr.args, :($(el.symbol) = FusionSpecies.get_element($(QuoteNode(el.symbol)))))
@@ -78,7 +88,16 @@ function get_species(objs::Vector{Symbol})
     return species_set
 end
 
-function add_species(el::Element, species_set::SpeciesSet)
+function get_wall_elements(objs::Vector{Symbol})
+    species_set = MaterialElementSet()
+    for obj in objs
+        add_species(getfield(@__MODULE__, obj), species_set)
+    end
+    setup_species!(species_set)
+    return species_set
+end
+
+function add_species(el::Element, species_set::AbstractSet)
     check_status(species_set)
     for s in el.species
         add_species(s, species_set)
@@ -105,13 +124,13 @@ function setup_species!(species_set::SpeciesSet)
     # update species stored in elements
     for el in els
         empty!(el.species)
-        for  s in species_set.list_species
+        for s in species_set.list_species
             if s.element.symbol == el.symbol
-                push!(el.species,s)
+                push!(el.species, s)
             end
         end
     end
-    
+
     species_set.lock[1] = true
 end
 
@@ -170,9 +189,9 @@ macro import_species(args...)
     :(import_species!($(aargs[1]), @__MODULE__, $force_import))
 end
 
-function set_main_species!(species_set::SpeciesSet, s) 
+function set_main_species!(species_set::SpeciesSet, s)
     for s in get_species(species_set, s)
-    s.is_main_species.bool = true 
+        s.is_main_species.bool = true
     end
 end
 
