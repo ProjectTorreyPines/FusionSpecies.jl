@@ -1,25 +1,43 @@
-using FusionSpecies
-using Documenter
+using Documenter, FusionSpecies
 
-DocMeta.setdocmeta!(FusionSpecies, :DocTestSetup, :(using FusionSpecies); recursive=true)
+# Call functions
+open(joinpath(@__DIR__, "src/api.md"), "w") do f
+    println(f, "# API Reference\n")
+    for page in keys(FusionSpecies.document)
+        if page == :Expressions
+            continue
+        end
+        println(f, "## $page\n")
+        println(f, "```@docs")
+        for item in FusionSpecies.document[page]
+            println(f, "$item")
+        end
+        println(f, "```")
+    end
+end
 
 makedocs(;
     modules=[FusionSpecies],
-    authors="Jerome Guterl",
-    repo="https://github.com/jguterl/FusionSpecies.jl/blob/{commit}{path}#{line}",
-    sitename="FusionSpecies.jl",
-    format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://jguterl.github.io/FusionSpecies.jl",
-        edit_link="main",
-        assets=String[],
-    ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    format=Documenter.HTML(; analytics="G-65D8V8C8VQ"),
+    sitename="FusionSpecies",
+    checkdocs=:none,
+    pages=["index.md", "api.md", "License" => "license.md", "Notice" => "notice.md"]
 )
 
+# Deploy docs
+# This function deploys the documentation to the gh-pages branch of the repository.
+# The main documentation that will be hosted on
+# https://projecttorreypines.github.io/FusionSpecies.jl/stable
+# will be built from latest release tagged with a version number.
+# The development documentation that will be hosted on
+# https://projecttorreypines.github.io/FusionSpecies.jl/dev
+# will be built from the latest commit on the chosen devbranch argument below.
+# For testing purposes, the devbranch argument can be set to WIP branch like "docs".
+# While merging with master, the devbranch argument should be set to "master".
 deploydocs(;
-    repo="github.com/jguterl/FusionSpecies.jl",
-    devbranch="main",
+    repo="github.com/ProjectTorreyPines/FusionSpecies.jl.git",
+    target="build",
+    branch="gh-pages",
+    devbranch="master",
+    versions=["stable" => "v^", "v#.#"]
 )
