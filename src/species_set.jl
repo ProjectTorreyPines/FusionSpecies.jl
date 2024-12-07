@@ -177,7 +177,7 @@ function import_species!(species_set::SpeciesSet, mod::Module, force_import::Boo
     for e in get_elements(species_set)
         if !hasproperty(mod, e.symbol) || force_import
             push!(list, e)
-            try 
+            try #for main, cannot directly use setproperty! since julia v1.11
                 setproperty!(mod, e.symbol, get_elements(species_set))
             catch
                 mod.eval(:($(e.symbol)=1)) 
