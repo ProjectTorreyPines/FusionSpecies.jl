@@ -8,6 +8,7 @@ makedocs(;
     pages=["index.md", "License" => "license.md", "Notice" => "notice.md"]
 )
 
+#
 # Deploy docs
 # This function deploys the documentation to the gh-pages branch of the repository.
 # The main documentation that will be hosted on
