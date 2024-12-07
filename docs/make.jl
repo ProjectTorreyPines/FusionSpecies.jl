@@ -1,27 +1,11 @@
 using Documenter, FusionSpecies
 
-# Call functions
-# open(joinpath(@__DIR__, "src/api.md"), "w") do f
-#     println(f, "# API Reference\n")
-#     for page in keys(FusionSpecies.document)
-#         if page == :Expressions
-#             continue
-#         end
-#         println(f, "## $page\n")
-#         println(f, "```@docs")
-#         for item in FusionSpecies.document[page]
-#             println(f, "$item")
-#         end
-#         println(f, "```")
-#     end
-# end
-
 makedocs(;
     modules=[FusionSpecies],
     format=Documenter.HTML(; analytics="G-65D8V8C8VQ"),
     sitename="FusionSpecies",
     checkdocs=:none,
-    pages=["index.md", "License" => "license.md", "Notice" => "notice.md"]
+    pages=["src/index.md", "License" => "src/license.md", "Notice" => "src/notice.md"]
 )
 
 # Deploy docs
