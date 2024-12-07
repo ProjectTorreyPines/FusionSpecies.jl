@@ -5,7 +5,7 @@ makedocs(;
     format=Documenter.HTML(; analytics="G-65D8V8C8VQ"),
     sitename="FusionSpecies",
     checkdocs=:none,
-    pages=["src/index.md", "License" => "src/license.md", "Notice" => "src/notice.md"]
+    pages=["index.md", "License" => "license.md", "Notice" => "notice.md"]
 )
 
 # Deploy docs
