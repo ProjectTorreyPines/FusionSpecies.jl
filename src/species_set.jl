@@ -164,7 +164,12 @@ function import_species!(species_set::SpeciesSet, mod::Module, force_import::Boo
     for (i, s) in enumerate(species_set.list_species)
         if !hasproperty(mod, s.symbol) || force_import
             push!(list, s)
-            setproperty!(mod, s.symbol, species_set.list_species[i])
+            try #for main, cannot directly use setproperty! since julia v1.11
+                setproperty!(mod, s.symbol, species_set.list_species[i])
+            catch
+                mod.eval(:($(s.symbol)=1)) 
+                setproperty!(mod, s.symbol, species_set.list_species[i])  
+            end
         else
             println("warning: cannot import species $(name_(s)) into module $mod ...")
         end
@@ -172,7 +177,12 @@ function import_species!(species_set::SpeciesSet, mod::Module, force_import::Boo
     for e in get_elements(species_set)
         if !hasproperty(mod, e.symbol) || force_import
             push!(list, e)
-            setproperty!(mod, e.symbol, get_elements(species_set))
+            try 
+                setproperty!(mod, e.symbol, get_elements(species_set))
+            catch
+                mod.eval(:($(e.symbol)=1)) 
+                setproperty!(mod, e.symbol, get_elements(species_set))
+            end
         else
             println("warning: cannot import element $(name_(e)) into module $mod ...")
         end
