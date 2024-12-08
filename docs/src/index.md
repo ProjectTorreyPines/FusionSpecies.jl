@@ -1,18 +1,8 @@
-```@meta
-CurrentModule = FusionSpecies
-```
+# FusionSpecies.jl
 
-# FusionSpecies
-```@eval
-using AbstractTrees
-AbstractTrees.children(x::Type) = subtypes(x)
-print_tree(FusionSpecies.ParticleType)
-```
-Documentation for [FusionSpecies](https://github.com/jguterl/FusionSpecies.jl).
+`FusionSpecies.jl'
 
-```@index
-```
+For more details, see the [online documentation](https://projecttorreypines.github.io/FusionSpecies.jl/dev).
 
-```@autodocs
-Modules = [FusionSpecies]
-```
+![Docs](https://github.com/ProjectTorreyPines/FusionSpecies.jl/actions/workflows/make_docs.yml/badge.svg)
+
